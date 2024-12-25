@@ -1,14 +1,8 @@
 from pydantic import BaseModel, validator
 from typing import Literal
 
-
-class MarathonTime(BaseModel):
-    hours: int | None = 0
-    minutes: int | None = 0
-    seconds: int | None = 0
-
 class Pace(BaseModel):
-    time: str = "3:00"
+    time: str = "5:00"
     unit: Literal["mi", "km"]
     @validator("time")
 
@@ -55,6 +49,7 @@ class Pace(BaseModel):
                         unit=self.unit)
 
     def __mul__(self, other):
+        # use percentage of pace
         parsed_time = self.time.split(":")
         minutes = int(parsed_time[0])
         seconds = int(parsed_time[1])
@@ -74,9 +69,3 @@ class Pace(BaseModel):
         updated_pace_seconds = int(divided_seconds % 60)
         return Pace(time=f"{updated_pace_minutes}:{updated_pace_seconds:02}",
                     unit=self.unit)
-
-
-
-
-
-

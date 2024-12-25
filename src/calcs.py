@@ -1,5 +1,20 @@
 from src.models import Pace
 from sys import argv
+from typing import Literal, Annotated
+
+
+KM_DISTANCES = {
+    '5k': 5,
+    '10k': 10,
+    'Half Marathon': 21.0975,
+    'Marathon': 42.195
+}
+
+def convert_units(distance: float, unit: Literal["km", "mi"]):
+    if unit == 'km':
+        return distance * 1.609
+    elif unit == 'mi':
+        return distance * 0.621
 
 def percentage_of_speed(pace: Pace, percentage: float):
     # https://runningwritings.com/2013/02/brief-thoughts-calculating-percentages.html
@@ -32,11 +47,9 @@ def percentage_of_pace(pace: Pace, percentage: float):
     new_pace = Pace(**pace_params)
     return new_pace
 
-def marathon_pace(finish_time: str, unit: str):
-    if unit == 'km':
-        distance = 42.195
-    elif unit == 'mi':
-        distance = 26.2188
+def get_pace(finish_time: str,
+             unit: str,
+             distance: int):
     parsed_time = finish_time.split(":")
     total_seconds = int(parsed_time[0]) * 3600 + int(parsed_time[1]) * 60 + int(parsed_time[2])
     pace = total_seconds / distance
@@ -48,22 +61,21 @@ def marathon_pace(finish_time: str, unit: str):
     }
     return Pace(**pace_params)
 
-def pfitz_long_run_paces(distance: int, marathon_pace:Pace):
+def pfitz_long_run_pace(distance: int, marathon_pace:Pace):
     # linear increase from 20% to 10% slower than goal marathon pace
     # calculating percentage of pace
     lower_bound = percentage_of_pace(marathon_pace, 0.8)
     upper_bound = percentage_of_pace(marathon_pace, 0.9)
     step_size = (upper_bound - lower_bound) // distance
+    paces = []
     for i in range(1, distance + 1):
         lower_bound -= step_size
-        print(f"mile {i} {lower_bound}")
-
-if __name__ == "__main__":
-    m_pace = marathon_pace(argv[1], argv[2])
-    pfitz_long_run_paces(14, m_pace)
-
-
-
-
-
-
+        lower_target = lower_bound - 5
+        upper_target = lower_bound + 5
+        paces.append(
+            {
+                f"{marathon_pace.unit}": i,
+                "Target Pace": f"{lower_target.time} to {upper_target.time}"
+            }
+        )
+    return paces
