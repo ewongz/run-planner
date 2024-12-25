@@ -1,12 +1,5 @@
 from fastapi import FastAPI
-import models
-import calcs
+from src import routers
 
 app = FastAPI(title="Marathon Training Planner")
-
-def hello():
-    return("Hello Sync!")
-
-@app.get("/")
-async def root():
-    return hello()
+app.include_router(routers.router)

@@ -1,5 +1,6 @@
-from models import Pace
+from src.models import Pace
 from sys import argv
+
 def percentage_of_speed(pace: Pace, percentage: float):
     # https://runningwritings.com/2013/02/brief-thoughts-calculating-percentages.html
     # "a linear change in speed(in m/s) for each incremental change in percent"

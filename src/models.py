@@ -1,5 +1,11 @@
 from pydantic import BaseModel, validator
-from typing import Literal, Annotated
+from typing import Literal
+
+
+class MarathonTime(BaseModel):
+    hours: int | None = 0
+    minutes: int | None = 0
+    seconds: int | None = 0
 
 class Pace(BaseModel):
     time: str = "3:00"
