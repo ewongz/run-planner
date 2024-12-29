@@ -40,6 +40,7 @@ function App() {
               placeholder="Enter time (HH:MM:SS)"
               value={finishTime}
               onChange={(e) => setTime(e.target.value)}
+              className="styled-text-field"
             />
 
             {/* Dropdown to select unit */}
@@ -47,6 +48,7 @@ function App() {
               id="unit-dropdown"
               value={unit}
               onChange={(e) => setUnit(e.target.value)}
+              className="styled-dropdown"
             >
               <option value="">-- mi / km --</option>
               <option value="mi">mi</option>
@@ -58,6 +60,7 @@ function App() {
               id="race-dropdown"
               value={raceDistance}
               onChange={(e) => setRaceDistance(e.target.value)} // Trigger data fetch on change
+              className="styled-dropdown"
             >
               <option value="">-- Select a Race Distance --</option>
               <option value="5K">5K</option>
