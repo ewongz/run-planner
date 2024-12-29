@@ -1,11 +1,11 @@
-from src.models import Pace
+from backend.models import Pace
 from sys import argv
 from typing import Literal, Annotated
 
 
 KM_DISTANCES = {
-    '5k': 5,
-    '10k': 10,
+    '5K': 5,
+    '10K': 10,
     'Half Marathon': 21.0975,
     'Marathon': 42.195
 }
@@ -79,3 +79,30 @@ def pfitz_long_run_pace(distance: int, marathon_pace:Pace):
             }
         )
     return paces
+
+def heart_rate_zones(max_heart_rate: int):
+    """
+    Five Heart Rate Zones
+    Zone	Intensity	% of HRmax	Purpose
+    Zone 1	Very Light	50%–60% of HRmax	Recovery, warm-ups, cool-downs
+    Zone 2	Light	65%–75% of HRmax	Fat burning, endurance building
+    Zone 3	Moderate	83%–87% of HRmax	Aerobic capacity, improved stamina
+    Zone 4	Hard	89%–94% of HRmax	Increased speed and performance
+    Zone 5	Maximum/Very Hard	95%–98% of HRmax	Peak effort, anaerobic po
+    """
+    hr_calc = {
+        1: (0.5, 0.6),
+        2: (0.65, 0.75),
+        3: (0.83, 0.87),
+        4: (0.89, 0.94),
+        5: (0.95, 0.98) 
+    }
+    zones = {}
+    for zone, hr_calc in hr_calc.items():
+        zones[zone] = (
+            int(round(max_heart_rate * hr_calc[0], 0)),
+            int(round(max_heart_rate * hr_calc[1], 0))
+        )
+    return zones
+
+
