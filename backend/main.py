@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend import routers
+from . import routers
 
 app = FastAPI(title="Marathon Training Planner")
 app.add_middleware(

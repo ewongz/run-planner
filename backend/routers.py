@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Query
-from backend import calcs
-from backend.models import Pace
+from . import calcs
+from .models import Pace
 from typing import Literal, Annotated
 router = APIRouter()
 

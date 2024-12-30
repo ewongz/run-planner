@@ -11,6 +11,18 @@ services:
     stdin_open: true
     tty: true
 
+  frontend:
+    # Build the image from the Dockerfile in the current directory
+    build: 
+      context: ./frontend
+    # Host the FastAPI application on port 8000
+    ports:
+      - "3000:3000"
+
+    # Interactive shell container
+    stdin_open: true
+    tty: true
+
     develop:
       # Create a `watch` configuration to update the appl
       # https://docs.docker.com/compose/file-watch/#compose-watch-versus-bind-mounts
@@ -26,4 +38,8 @@ services:
 
         # Rebuild the image on changes to the `pyproject.toml`
         - action: rebuild
-          path: ./pyproject.toml
+          path: backend/pyproject.toml
+
+        # Rebuild the image on changes to the `pyproject.toml`
+        - action: rebuild
+          path: frontend/package-lock.json

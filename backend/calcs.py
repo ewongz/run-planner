@@ -1,4 +1,4 @@
-from backend.models import Pace
+from .models import Pace
 from sys import argv
 from typing import Literal, Annotated
 
