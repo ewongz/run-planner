@@ -2,8 +2,7 @@ services:
   backend:
     # Build the image from the Dockerfile in the current directory
     build: 
-      context: .
-      dockerfile: Dockerfile.backend
+      context: ./backend
     # Host the FastAPI application on port 8000
     ports:
       - "8000:8000"
