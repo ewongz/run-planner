@@ -34,6 +34,11 @@ services:
     # Interactive shell container
     stdin_open: true
     tty: true
+    environment:
+      - WDS_SOCKET_HOST=127.0.0.1 
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true 
+    command: npm run start
     develop:
       # Create a `watch` configuration to update the appl
       # https://docs.docker.com/compose/file-watch/#compose-watch-versus-bind-mounts
