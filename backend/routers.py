@@ -18,6 +18,11 @@ def race_pace(finish_time: Annotated[str | None, Query(pattern="^[^:]*(:[^:]*:?[
     result = calcs.get_pace(finish_time, unit, distance) 
     return {"pace": result.time}
 
+def race_time(pace: Annotated[str | None, Query(pattern="^[^:]*(:[^:]*:?[^:]*|[^:]*:)$")] = "6:30",
+              unit: Annotated[Literal["mi", "km"], "pace units in km or mi"] = "mi",
+              distance: Annotated[Literal["5K", "10K", "Half Marathon", "Marathon"], "race distance"] = "Marathon"):
+    
+
 
 @router.get("/pfitz_long_run_pace")
 def pfitz_long_run_pace(distance: Annotated[int, "distance of long run"] = 15,

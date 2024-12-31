@@ -1,5 +1,6 @@
 .App {
   text-align: center;
+  background-color: #3c424e;
 }
 
 .App-logo {
@@ -14,14 +15,24 @@
 }
 
 .App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+  background-color: #3c424e;
+  min-height: 8vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  font-size: calc(5px + 2vmin);
   color: white;
+}
+
+.Pace-calculator {
+  background-color: #5c6679;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: first baseline;
+  justify-content: center;
+  border-radius: 10px; /* Rounded corners */
 }
 
 .App-link {

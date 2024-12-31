@@ -61,6 +61,23 @@ def get_pace(finish_time: str,
     }
     return Pace(**pace_params)
 
+def get_time(pace: Pace,
+             distance: int):
+    parsed_time = pace.time.split(":")
+    total_pace_seconds = int(parsed_time[0]) * 3600 + int(parsed_time[1]) * 60 + int(parsed_time[2])
+    total_time_seconds = total_pace_seconds * distance
+    hours = int(total_time_seconds // 3600)
+    minutes = int((total_time_seconds - (hours * 3600)) // 60)
+    seconds = int(pace % 60)
+    if hours > 0:
+        total_time = f"{hours}:{minutes}:{seconds}"
+    elif minutes > 0:
+        total_time = f"{minutes:02}:{seconds:02}"
+    else:
+        total_time = f"{seconds}"
+    return total_time
+
+    
 def pfitz_long_run_pace(distance: int, marathon_pace:Pace):
     # linear increase from 20% to 10% slower than goal marathon pace
     # calculating percentage of pace
