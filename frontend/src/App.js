@@ -1,12 +1,11 @@
 import React, {useState} from "react";
 import axios from "axios";
 import "./App.css";
-import ButtonGrid from "./ButtonGrid";
 
 function App() {
   const [data, setData] = useState("");
   const [finishTime, setTime] = useState("");
-  const [unit, setUnit] = useState("");
+  const [isMiles, setIsMiles] = useState(true);
   const [raceDistance, setRaceDistance] = useState("");
   const [error, setError] = useState("");
 
@@ -16,6 +15,12 @@ function App() {
     setError(""); // Clear previous errors
     const encodedTime = encodeURIComponent(finishTime)
     const encodedDistance = encodeURIComponent(raceDistance)
+    let unit;
+    if (isMiles) {
+      unit = "mi";
+    } else {
+      unit = "km";
+    }
     axios.get(`http://127.0.0.1:8000/race_pace?finish_time=${encodedTime}&unit=${unit}&distance=${encodedDistance}`)
     .then(
       response => {
@@ -27,6 +32,10 @@ function App() {
       console.error("Error fetching data:", err);
       setError("Failed to fetch data.")
     });
+  };
+
+  const toggleUnit = () => {
+    setIsMiles((prevState) => !prevState)
   };
 
   return (
@@ -45,17 +54,14 @@ function App() {
             className="styled-text-field"
           />
 
-          {/* Dropdown to select unit */}
-          <select
-            id="unit-dropdown"
-            value={unit}
-            onChange={(e) => setUnit(e.target.value)}
-            className="styled-dropdown"
+          {/* Toggle Button */}
+          <button
+            id="unit-toggle"
+            onClick={toggleUnit}
+            className="toggle-button"
           >
-            <option value="">-- mi / km --</option>
-            <option value="mi">mi</option>
-            <option value="km">km</option>
-          </select>
+            {isMiles ? "mi" : "km"}
+          </button>
 
           {/* Dropdown to select a race type */}
           <select
@@ -78,7 +84,7 @@ function App() {
           {error && <p style={{ color: "red" }}>{error}</p>}
 
           {/* Display the Fetched Data */}
-          <p>{data ? data : ""}</p>
+          <p style={{color: "whitesmoke"}}>{data ? data : ""}</p>
         </div>
     </div>
   );

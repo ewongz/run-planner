@@ -1,6 +1,7 @@
 .App {
   text-align: center;
   background-color: #3c424e;
+  min-height: 100vh;
 }
 
 .App-logo {
@@ -27,12 +28,14 @@
 
 .Pace-calculator {
   background-color: #5c6679;
-  min-height: 100vh;
+  min-height: 50vh;
+  max-width: 50vh;
   display: flex;
   flex-direction: column;
-  align-items: first baseline;
+  align-items: center;
   justify-content: center;
   border-radius: 10px; /* Rounded corners */
+  margin: 25px; /* Margin for spacing */
 }
 
 .App-link {
@@ -86,4 +89,22 @@ button {
 
 button:hover {
   background-color: #0056b3; /* Darker on hover */
+}
+
+.toggle-button {
+  width: 100px;
+  height: 40px;
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin: 10px;
+}
+
+.toggle-button:hover {
+  background-color: #0056b3;
 }
