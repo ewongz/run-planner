@@ -2,6 +2,20 @@ import React, {useState} from "react";
 import axios from "axios";
 import "./App.css";
 
+// Function to handle input change for time
+export function handleChange(e) {
+  let value = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric characters
+  // Add colon at appropriate positions
+  if (value.length > 2 && value.length <= 4) {
+    value = value.slice(0, 2) + ":" + value.slice(2);
+  } else if (value.length > 4 && value.length <= 5) {
+    value = value.slice(0, 1) + ":" + value.slice(1, 3) + ":" + value.slice(3, 5);
+  } else if (value.length > 5) {
+    value = value.slice(0, 2) + ":" + value.slice(2, 4) + ":" + value.slice(4, 8);
+  }
+  return value;
+}
+
 function App() {
   const [pace, setPace] = useState("");
   const [time, setTime] = useState("");
@@ -14,6 +28,14 @@ function App() {
     setTime("");
     setRaceDistance("");
     setPace("");
+  };
+
+  const calculate = () => {
+    if (pace == "") {
+      setPace(fetchPace());
+    } else {
+      setTime(fetchTime());
+    }
   };
 
   // Calculate Pace
@@ -36,23 +58,41 @@ function App() {
     )
     .catch(err => {
       console.error("Error fetching data:", err);
-      setError("Failed to fetch data.")
+      setError("Failed to fetch pace.")
     });
   };
 
-  // Function to handle input change for time
-  const handleChange = (e) => {
-    let value = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric characters
-    // Add colon at appropriate positions
-    if (value.length > 2 && value.length <= 4) {
-      value = value.slice(0, 2) + ":" + value.slice(2);
-    } else if (value.length > 4 && value.length <= 5) {
-      value = value.slice(0, 1) + ":" + value.slice(1, 3) + ":" + value.slice(3, 5);
-    } else if (value.length > 5) {
-      value = value.slice(0, 2) + ":" + value.slice(2, 4) + ":" + value.slice(4, 8);
+  // Calculate Time
+  const fetchTime = () => {
+    setError(""); // Clear previous errors
+    const encodedPace = encodeURIComponent(pace)
+    const encodedDistance = encodeURIComponent(raceDistance)
+    let unit;
+    if (isMiles) {
+      unit = "mi";
+    } else {
+      unit = "km";
     }
-    setTime(value); // Update the time state
-  };
+    axios.get(`http://127.0.0.1:8000/race_time?pace=${encodedPace}&unit=${unit}&distance=${encodedDistance}`)
+    .then(
+      response => {
+        const timeData = `${response.data.time}`
+        setTime(timeData);
+      }
+    )
+    .catch(err => {
+      console.error("Error fetching data:", err);
+      setError("Failed to fetch time")
+    });
+  }
+
+  const formatTime = (e) => {
+    setTime(handleChange(e))
+  }
+
+  const formatPace = (e) => {
+    setPace(handleChange(e))
+  }
 
   const toggleUnit = () => {
     setIsMiles((prevState) => !prevState)
@@ -71,7 +111,7 @@ function App() {
               type="text"
               placeholder="Time (hh:mm:ss)"
               value={time}
-              onChange={handleChange}
+              onChange={formatTime}
               className="time-text-field"
               maxLength={8}
             />
@@ -101,11 +141,11 @@ function App() {
 
           {/* Input Pace */}
           <input
-            id="time-input"
+            id="pace-input"
             type="text"
             placeholder="Pace (mm:ss)"
             value={pace}
-            onChange={handleChange}
+            onChange={formatPace}
             className="pace-text-field"
             maxLength={6}
           />
@@ -113,7 +153,7 @@ function App() {
           <div className="rowC">
             {/* Button to Trigger GET Request */}
             <button 
-              onClick={fetchPace}
+              onClick={fetchTime}
               className="calculate-button"
               >🏃 Calculate </button>
             {/* Button to Clear User Input */}

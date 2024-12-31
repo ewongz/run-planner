@@ -28,7 +28,7 @@
 
 .Pace-calculator {
   background-color: #5c6679;
-  height: 250px;
+  height: 285px;
   width: 350px;
   display: flex;
   flex-direction: column;
@@ -129,7 +129,7 @@ button:hover {
 }
 
 .toggle-button:hover {
-  background-color: #0056b3;
+  background-color: #93a1b1;
 }
 
 .rowC {
