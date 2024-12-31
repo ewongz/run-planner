@@ -77,11 +77,12 @@
 }
 
 .reset-button {
-  width: 35px; /* Match dropdown width */
-  height: 35px; /* Match dropdown height */
+  width: 40px; /* Match dropdown width */
+  height: 40px; /* Match dropdown height */
   font-size: 25px; /* Consistent font size */
   border-radius: 5px; /* Rounded corners */
   border: 1px solid #ccc; /* Border style */
+  background-color: #007bff; /* Button color */
   cursor: pointer;
   margin: 8px; /* Margin for spacing */
 }
@@ -121,7 +122,8 @@ button:hover {
   font-weight: bold;
   color: white;
   background-color: #007bff;
-  border: none;
+  border: 1px solid #ccc; /* Border style */
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Optional shadow */
   border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.3s ease;
@@ -129,7 +131,7 @@ button:hover {
 }
 
 .toggle-button:hover {
-  background-color: #93a1b1;
+  background-color: #0056b3;
 }
 
 .rowC {
