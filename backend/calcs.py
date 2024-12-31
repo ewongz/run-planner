@@ -69,11 +69,11 @@ def get_time(pace: Pace,
     else:
         total_pace_seconds = int(parsed_time[0]) * 60 + int(parsed_time[1])
     total_time_seconds = int(total_pace_seconds * distance)
-    hours = int(total_time_seconds // 3600)
-    minutes = int((total_time_seconds - (hours * 3600)) // 60)
-    seconds = int(total_pace_seconds % 60)
+    hours = total_time_seconds // 3600
+    minutes = (total_time_seconds % 3600)  // 60
+    seconds = total_pace_seconds % 60
     if hours > 0:
-        total_time = f"{hours}:{minutes}:{seconds}"
+        total_time = f"{hours:02}:{minutes:02}:{seconds:02}"
     elif minutes > 0:
         total_time = f"{minutes:02}:{seconds:02}"
     else:
