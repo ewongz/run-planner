@@ -47,8 +47,10 @@ function App() {
     // Add colon at appropriate positions
     if (value.length > 2 && value.length <= 4) {
       value = value.slice(0, 2) + ":" + value.slice(2);
-    } else if (value.length > 4) {
-      value = value.slice(0, 2) + ":" + value.slice(2, 4) + ":" + value.slice(4, 6);
+    } else if (value.length > 4 && value.length <= 5) {
+      value = value.slice(0, 1) + ":" + value.slice(1, 3) + ":" + value.slice(3, 5);
+    } else if (value.length > 5) {
+      value = value.slice(0, 2) + ":" + value.slice(2, 4) + ":" + value.slice(4, 8);
     }
     setTime(value); // Update the time state
   };
@@ -115,7 +117,7 @@ function App() {
           {error && <p style={{ color: "red" }}>{error}</p>}
 
           {/* Display the Fetched Data */}
-          <p style={{color: "whitesmoke"}}>{pace ? pace : ""}</p>
+          <p style={{color: "whitesmoke"}}>{pace ? pace : "mm:ss"}</p>
         </div>
     </div>
   );
