@@ -16,9 +16,8 @@ function App() {
     setPace("");
   };
 
-  // Calculate Marathon Pace
+  // Calculate Pace
   const fetchPace = () => {
-
     setError(""); // Clear previous errors
     const encodedTime = encodeURIComponent(time)
     const encodedDistance = encodeURIComponent(raceDistance)
@@ -73,7 +72,7 @@ function App() {
               placeholder="Time (hh:mm:ss)"
               value={time}
               onChange={handleChange}
-              className="styled-text-field"
+              className="time-text-field"
               maxLength={8}
             />
             {/* Toggle Button */}
@@ -99,13 +98,24 @@ function App() {
             <option value="Half Marathon">Half Marathon</option>
             <option value="Marathon">Marathon</option>
           </select>
+
+          {/* Input Pace */}
+          <input
+            id="time-input"
+            type="text"
+            placeholder="Pace (mm:ss)"
+            value={pace}
+            onChange={handleChange}
+            className="pace-text-field"
+            maxLength={6}
+          />
           
           <div className="rowC">
             {/* Button to Trigger GET Request */}
             <button 
               onClick={fetchPace}
-              className="get-pace-button"
-            >Get Pace</button>
+              className="calculate-button"
+              >🏃 Calculate </button>
             {/* Button to Clear User Input */}
             <button 
               onClick={reset}
@@ -115,9 +125,6 @@ function App() {
 
           {/* Error Message */}
           {error && <p style={{ color: "red" }}>{error}</p>}
-
-          {/* Display the Fetched Data */}
-          <p style={{color: "whitesmoke"}}>{pace ? pace : "mm:ss"}</p>
         </div>
     </div>
   );
