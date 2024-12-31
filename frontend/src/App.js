@@ -6,7 +6,9 @@ import "./App.css";
 export function handleChange(e) {
   let value = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric characters
   // Add colon at appropriate positions
-  if (value.length > 2 && value.length <= 4) {
+  if (value.length > 2 && value.length <= 3) {
+    value = value.slice(0, 1) + ":" + value.slice(1, 3);
+  } else if (value.length > 3 && value.length <= 4) {
     value = value.slice(0, 2) + ":" + value.slice(2);
   } else if (value.length > 4 && value.length <= 5) {
     value = value.slice(0, 1) + ":" + value.slice(1, 3) + ":" + value.slice(3, 5);
@@ -153,7 +155,7 @@ function App() {
           <div className="rowC">
             {/* Button to Trigger GET Request */}
             <button 
-              onClick={fetchTime}
+              onClick={calculate}
               className="calculate-button"
               >🏃 Calculate </button>
             {/* Button to Clear User Input */}
