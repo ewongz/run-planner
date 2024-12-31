@@ -28,14 +28,14 @@
 
 .Pace-calculator {
   background-color: #5c6679;
-  min-height: 50vh;
-  max-width: 50vh;
+  height: 250px;
+  width: 350px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   border-radius: 10px; /* Rounded corners */
-  margin: 25px; /* Margin for spacing */
+  margin: 50px; /* Margin for spacing */
 }
 
 .App-link {
@@ -63,8 +63,8 @@
   text-align: center;
 }
 
-button {
-  width: 250px; /* Match dropdown width */
+.get-pace-button {
+  width: 200px; /* Match dropdown width */
   height: 40px; /* Match dropdown height */
   font-size: 16px; /* Consistent font size */
   border-radius: 5px; /* Rounded corners */
@@ -75,8 +75,18 @@ button {
   margin: 8px; /* Margin for spacing */
 }
 
+.reset-button {
+  width: 35px; /* Match dropdown width */
+  height: 35px; /* Match dropdown height */
+  font-size: 25px; /* Consistent font size */
+  border-radius: 5px; /* Rounded corners */
+  border: 1px solid #ccc; /* Border style */
+  cursor: pointer;
+  margin: 8px; /* Margin for spacing */
+}
+
 .styled-text-field {
-  width: 235px; /* Fixed width */
+  width: 135px; /* Fixed width */
   height: 25px; /* Fixed height */
   padding: 8px; /* Padding for inner spacing */
   font-size: 16px; /* Consistent font size */
@@ -92,7 +102,7 @@ button:hover {
 }
 
 .toggle-button {
-  width: 100px;
+  width: 75px;
   height: 40px;
   font-size: 16px;
   font-weight: bold;
@@ -107,4 +117,9 @@ button:hover {
 
 .toggle-button:hover {
   background-color: #0056b3;
+}
+
+.rowC {
+  display: flex;
+  flex-direction: row;
 }

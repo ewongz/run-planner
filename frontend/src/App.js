@@ -3,17 +3,24 @@ import axios from "axios";
 import "./App.css";
 
 function App() {
-  const [data, setData] = useState("");
-  const [finishTime, setTime] = useState("");
+  const [pace, setPace] = useState("");
+  const [time, setTime] = useState("");
   const [isMiles, setIsMiles] = useState(true);
   const [raceDistance, setRaceDistance] = useState("");
   const [error, setError] = useState("");
+
+  const reset = () => {
+    setError(""); // Clear previous errors
+    setTime("");
+    setRaceDistance("");
+    setPace("");
+  };
 
   // Calculate Marathon Pace
   const fetchPace = () => {
 
     setError(""); // Clear previous errors
-    const encodedTime = encodeURIComponent(finishTime)
+    const encodedTime = encodeURIComponent(time)
     const encodedDistance = encodeURIComponent(raceDistance)
     let unit;
     if (isMiles) {
@@ -25,13 +32,25 @@ function App() {
     .then(
       response => {
         const paceData = `${response.data.pace} / ${unit}`
-        setData(paceData); 
+        setPace(paceData); 
       }
     )
     .catch(err => {
       console.error("Error fetching data:", err);
       setError("Failed to fetch data.")
     });
+  };
+
+  // Function to handle input change for time
+  const handleChange = (e) => {
+    let value = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric characters
+    // Add colon at appropriate positions
+    if (value.length > 2 && value.length <= 4) {
+      value = value.slice(0, 2) + ":" + value.slice(2);
+    } else if (value.length > 4) {
+      value = value.slice(0, 2) + ":" + value.slice(2, 4) + ":" + value.slice(4, 6);
+    }
+    setTime(value); // Update the time state
   };
 
   const toggleUnit = () => {
@@ -44,24 +63,26 @@ function App() {
             <h1>{"Marathon Training Planner"}</h1>
         </header>
         <div className="Pace-calculator">
-          {/* Input Finish Time */}
-          <input
-            id="time-input"
-            type="text"
-            placeholder="Time (hh:mm:ss)"
-            value={finishTime}
-            onChange={(e) => setTime(e.target.value)}
-            className="styled-text-field"
-          />
-
-          {/* Toggle Button */}
-          <button
-            id="unit-toggle"
-            onClick={toggleUnit}
-            className="toggle-button"
-          >
-            {isMiles ? "mi" : "km"}
-          </button>
+          <div className="rowC">
+            {/* Input Finish Time */}
+            <input
+              id="time-input"
+              type="text"
+              placeholder="Time (hh:mm:ss)"
+              value={time}
+              onChange={handleChange}
+              className="styled-text-field"
+              maxLength={8}
+            />
+            {/* Toggle Button */}
+            <button
+              id="unit-toggle"
+              onClick={toggleUnit}
+              className="toggle-button"
+            >
+              {isMiles ? "mi" : "km"}
+            </button>
+          </div>
 
           {/* Dropdown to select a race type */}
           <select
@@ -77,14 +98,24 @@ function App() {
             <option value="Marathon">Marathon</option>
           </select>
           
-          {/* Button to Trigger GET Request */}
-          <button onClick={fetchPace}>Get Pace</button>
+          <div className="rowC">
+            {/* Button to Trigger GET Request */}
+            <button 
+              onClick={fetchPace}
+              className="get-pace-button"
+            >Get Pace</button>
+            {/* Button to Clear User Input */}
+            <button 
+              onClick={reset}
+              className="reset-button"
+            >🔄</button>
+          </div>
 
           {/* Error Message */}
           {error && <p style={{ color: "red" }}>{error}</p>}
 
           {/* Display the Fetched Data */}
-          <p style={{color: "whitesmoke"}}>{data ? data : ""}</p>
+          <p style={{color: "whitesmoke"}}>{pace ? pace : ""}</p>
         </div>
     </div>
   );
