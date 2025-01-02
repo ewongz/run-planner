@@ -147,8 +147,19 @@ function App() {
         <header className="App-header">
             <h1>{"Marathon Training Planner"}</h1>
         </header>
-        <div className="Pace-calculator">
-
+        {/* <div className="Pace-calculator"> */}
+        <Box
+          component="form"
+          sx={{ m:15,
+                p: 2,
+                width: "25ch",
+                bgcolor: "#5e99be",
+                border: '1px solid white',
+                boxShadow: 1,
+                borderRadius: 2
+              }}
+        >
+        <Stack spacing={2}>
           {/* Dropdown to select a race type */}
           <FormControl sx={{ m:1, minWidth:250 }}>
             <TextField
@@ -180,7 +191,7 @@ function App() {
             </TextField>
           </FormControl>
 
-          <div className="rowC">
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center"}}>
             {/* Input Pace */}
             <FormControl sx={{ m:1, maxWidth: 170 }}>
               <TextField
@@ -205,26 +216,27 @@ function App() {
                 mi
               </Typography>
             </Stack>
-          </div>
+          </Stack>
           
-          <div className="rowC">
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center"}}>
             {/* Button to Trigger GET Request */}
             <Button variant="contained"
               onClick={calculate}
               >🏃 Calculate </Button>
             {/* Button to Clear User Input */}
-            <IconButton 
+            <Button 
+              variant="outlined"
               onClick={reset}
-              color="primary"
-              aria-label="delete"
+              startIcon={<RestartAltIcon />}
             >
-              <RestartAltIcon/>
-            </IconButton>
-          </div>
+              Reset
+            </Button>
+          </Stack>
 
           {/* Error Message */}
           {error && <p style={{ color: "red" }}>{error}</p>}
-        </div>
+          </Stack>
+          </Box>
     </div>
   );
 }
