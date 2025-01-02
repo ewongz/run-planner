@@ -38,6 +38,18 @@
   margin: 50px; /* Margin for spacing */
 }
 
+.Percent-calculator {
+  background-color: #5c6679;
+  height: 285px;
+  width: 350px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px; /* Rounded corners */
+  margin: 50px; /* Margin for spacing */
+}
+
 .App-link {
   color: #61dafb;
 }
