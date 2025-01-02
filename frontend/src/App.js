@@ -1,5 +1,11 @@
 import React, {useState} from "react";
 import axios from "axios";
+import { styled } from '@mui/material/styles';
+import FormGroup from '@mui/material/FormGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Switch from '@mui/material/Switch';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
 import "./App.css";
 
 // Function to handle input change for time
@@ -105,7 +111,7 @@ function App() {
     setLastUpdated("pace")
   }
 
-  const toggleUnit = () => {
+  const switchUnit = () => {
     setIsMiles((prevState) => !prevState)
   };
 
@@ -152,14 +158,20 @@ function App() {
                 className="pace-text-field"
                 maxLength={6}
               />
-            {/* Toggle Button */}
-            <button
-              id="unit-toggle"
-              onClick={toggleUnit}
-              className="toggle-button"
-            >
-              {isMiles ? "mi" : "km"}
-            </button>
+            {/* switch Button */}
+            <Stack direction="row" spacing={0.02} sx={{ alignItems: "center"}}>
+              <Typography variant="caption" color="white" sx={{ fontSize: "15px"}}>
+                km
+              </Typography>
+              <Switch 
+                defaultChecked
+                onChange={switchUnit}
+                size="small"
+              />
+              <Typography variant="caption" color="white" sx={{ fontSize: "15px"}}>
+                mi
+              </Typography>
+            </Stack>
           </div>
           
           <div className="rowC">
