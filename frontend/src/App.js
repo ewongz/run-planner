@@ -15,6 +15,59 @@ import Switch from '@mui/material/Switch';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import "./App.css";
+import { createTheme, ThemeProvider, CssBaseline } from '@mui/material';
+
+const darkTheme = createTheme({
+  palette: {
+    mode: 'dark', // Enables dark mode
+    background: {
+      default: '#121212', // Primary background color
+      paper: '#1E1E1E', // Card or elevated surface background color
+    },
+    primary: {
+      main: '#BB86FC', // Primary color (light purple)
+      contrastText: '#FFFFFF', // Text color on primary surfaces
+    },
+    secondary: {
+      main: '#03DAC6', // Secondary color (teal)
+      contrastText: '#000000', // Text color on secondary surfaces
+    },
+    text: {
+      primary: '#FFFFFF', // Main text color
+      secondary: '#B0B0B0', // Secondary text color
+      disabled: '#666666', // Disabled text color
+    },
+    divider: '#333333', // Divider color
+  },
+  typography: {
+    fontFamily: 'Roboto, Arial, sans-serif',
+    h1: { fontSize: '2.5rem', fontWeight: 600 },
+    h2: { fontSize: '2rem', fontWeight: 500 },
+    body1: { fontSize: '1rem', color: '#E0E0E0' }, // Default text
+    body2: { fontSize: '0.875rem', color: '#B0B0B0' }, // Secondary text
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: '8px', // Rounded corners
+          textTransform: 'none', // Disable uppercase transformation
+        },
+        contained: {
+          boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.2)', // Add a subtle shadow
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          backgroundColor: '#1E1E1E', // Paper background color
+          borderRadius: '12px', // Rounded corners
+        },
+      },
+    },
+  },
+});
 
 // Function to handle input change for time
 export function handleChange(e) {
@@ -148,13 +201,13 @@ function App() {
             <h1>{"Marathon Training Planner"}</h1>
         </header>
         {/* <div className="Pace-calculator"> */}
+        <ThemeProvider theme={darkTheme}>
         <Box
           component="form"
           sx={{ m:15,
                 p: 2,
                 width: "25ch",
-                bgcolor: "#5e99be",
-                border: '1px solid white',
+                border: "1px solid grey",
                 boxShadow: 1,
                 borderRadius: 2
               }}
@@ -204,7 +257,7 @@ function App() {
             </FormControl>
             {/* Switch between mi/km */}
             <Stack direction="row" spacing={0.02} sx={{ alignItems: "center"}}>
-              <Typography variant="caption" color="white" sx={{ fontSize: "15px"}}>
+              <Typography variant="caption" color="#FFFFFF" sx={{ fontSize: "15px"}}>
                 km
               </Typography>
               <Switch 
@@ -212,7 +265,7 @@ function App() {
                 onChange={switchUnit}
                 size="small"
               />
-              <Typography variant="caption" color="white" sx={{ fontSize: "15px"}}>
+              <Typography variant="caption" color="#FFFFFF" sx={{ fontSize: "15px"}}>
                 mi
               </Typography>
             </Stack>
@@ -237,6 +290,7 @@ function App() {
           {error && <p style={{ color: "red" }}>{error}</p>}
           </Stack>
           </Box>
+          </ThemeProvider>
     </div>
   );
 }
