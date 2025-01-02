@@ -100,7 +100,7 @@
 }
 
 .time-text-field {
-  width: 135px; /* Fixed width */
+  width: 233px; /* Fixed width */
   height: 25px; /* Fixed height */
   padding: 8px; /* Padding for inner spacing */
   font-size: 16px; /* Consistent font size */
@@ -112,7 +112,7 @@
 }
 
 .pace-text-field {
-  width: 235px; /* Fixed width */
+  width: 150px; /* Fixed width */
   height: 25px; /* Fixed height */
   padding: 8px; /* Padding for inner spacing */
   font-size: 16px; /* Consistent font size */

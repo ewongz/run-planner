@@ -4,7 +4,7 @@ import "./App.css";
 
 // Function to handle input change for time
 export function handleChange(e) {
-  let value = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric characters
+  let value = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric characters except :
   // Add colon at appropriate positions
   if (value.length > 2 && value.length <= 3) {
     value = value.slice(0, 1) + ":" + value.slice(1, 3);
@@ -115,26 +115,6 @@ function App() {
             <h1>{"Marathon Training Planner"}</h1>
         </header>
         <div className="Pace-calculator">
-          <div className="rowC">
-            {/* Input Finish Time */}
-            <input
-              id="time-input"
-              type="text"
-              placeholder="Time (hh:mm:ss)"
-              value={time}
-              onChange={formatTime}
-              className="time-text-field"
-              maxLength={8}
-            />
-            {/* Toggle Button */}
-            <button
-              id="unit-toggle"
-              onClick={toggleUnit}
-              className="toggle-button"
-            >
-              {isMiles ? "mi" : "km"}
-            </button>
-          </div>
 
           {/* Dropdown to select a race type */}
           <select
@@ -150,16 +130,37 @@ function App() {
             <option value="Marathon">Marathon</option>
           </select>
 
-          {/* Input Pace */}
+          {/* Input Finish Time */}
           <input
-            id="pace-input"
-            type="text"
-            placeholder="Pace (mm:ss)"
-            value={pace}
-            onChange={formatPace}
-            className="pace-text-field"
-            maxLength={6}
+              id="time-input"
+              type="text"
+              placeholder="Time (hh:mm:ss)"
+              value={time}
+              onChange={formatTime}
+              className="time-text-field"
+              maxLength={8}
           />
+
+          <div className="rowC">
+            {/* Input Pace */}
+            <input
+                id="pace-input"
+                type="text"
+                placeholder="Pace (mm:ss)"
+                value={pace}
+                onChange={formatPace}
+                className="pace-text-field"
+                maxLength={6}
+              />
+            {/* Toggle Button */}
+            <button
+              id="unit-toggle"
+              onClick={toggleUnit}
+              className="toggle-button"
+            >
+              {isMiles ? "mi" : "km"}
+            </button>
+          </div>
           
           <div className="rowC">
             {/* Button to Trigger GET Request */}
