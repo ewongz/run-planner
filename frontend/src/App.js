@@ -1,8 +1,16 @@
 import React, {useState} from "react";
 import axios from "axios";
 import { styled } from '@mui/material/styles';
+import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import Box from '@mui/material/Box';
+import InputLabel from '@mui/material/InputLabel';
 import FormGroup from '@mui/material/FormGroup';
+import FormControl from '@mui/material/FormControl';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
 import Switch from '@mui/material/Switch';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -29,7 +37,7 @@ function App() {
   const [pace, setPace] = useState("");
   const [time, setTime] = useState("");
   const [isMiles, setIsMiles] = useState(true);
-  const [raceDistance, setRaceDistance] = useState("");
+  const [raceDistance, setRaceDistance] = useState("Marathon");
   const [error, setError] = useState("");
 
   const reset = () => {
@@ -106,6 +114,25 @@ function App() {
     
   }
 
+  const distances = [
+    {
+      value: '5K',
+      label: '5k'
+    },
+    {
+      value: '10K',
+      label: '10K'
+    },
+    {
+      value: 'Half Marathon',
+      label: 'Half Marathon'
+    },
+    {
+      value: 'Marathon',
+      label: 'Marathon'
+    }
+  ]
+
   const formatPace = (e) => {
     setPace(handleChange(e))
     setLastUpdated("pace")
@@ -123,42 +150,48 @@ function App() {
         <div className="Pace-calculator">
 
           {/* Dropdown to select a race type */}
-          <select
-            id="race-dropdown"
-            value={raceDistance}
-            onChange={(e) => setRaceDistance(e.target.value)} // Trigger data fetch on change
-            className="styled-dropdown"
-          >
-            <option value="">-- Select a Race Distance --</option>
-            <option value="5K">5K</option>
-            <option value="10K">10K</option>
-            <option value="Half Marathon">Half Marathon</option>
-            <option value="Marathon">Marathon</option>
-          </select>
+          <FormControl sx={{ m:1, minWidth:250 }}>
+            <TextField
+              id="race-distance-select"
+              select
+              label="Select a Race Distance"
+              value={raceDistance}
+              onChange={(e) => setRaceDistance(e.target.value)} // Trigger data fetch on change
+            >
+              {
+                distances.map(
+                  (option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                ))
+              }
+            </TextField>
+          </FormControl>
 
           {/* Input Finish Time */}
-          <input
-              id="time-input"
-              type="text"
-              placeholder="Time (hh:mm:ss)"
+          <FormControl sx={{ m:1, minWidth:250 }}>
+            <TextField
+              id="finish-time-text-field"
+              label="Time (hh:mm:ss)"
               value={time}
               onChange={formatTime}
-              className="time-text-field"
-              maxLength={8}
-          />
+              maxLength={8}>
+            </TextField>
+          </FormControl>
 
           <div className="rowC">
             {/* Input Pace */}
-            <input
-                id="pace-input"
-                type="text"
-                placeholder="Pace (mm:ss)"
+            <FormControl sx={{ m:1, maxWidth: 170 }}>
+              <TextField
+                id="pace-text-field"
+                label="Pace (mm:ss)"
                 value={pace}
                 onChange={formatPace}
-                className="pace-text-field"
-                maxLength={6}
-              />
-            {/* switch Button */}
+                maxLength={6}>
+              </TextField>
+            </FormControl>
+            {/* Switch between mi/km */}
             <Stack direction="row" spacing={0.02} sx={{ alignItems: "center"}}>
               <Typography variant="caption" color="white" sx={{ fontSize: "15px"}}>
                 km
@@ -176,15 +209,17 @@ function App() {
           
           <div className="rowC">
             {/* Button to Trigger GET Request */}
-            <button 
+            <Button variant="contained"
               onClick={calculate}
-              className="calculate-button"
-              >🏃 Calculate </button>
+              >🏃 Calculate </Button>
             {/* Button to Clear User Input */}
-            <button 
+            <IconButton 
               onClick={reset}
-              className="reset-button"
-            >🔄</button>
+              color="primary"
+              aria-label="delete"
+            >
+              <RestartAltIcon/>
+            </IconButton>
           </div>
 
           {/* Error Message */}
