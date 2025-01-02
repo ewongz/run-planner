@@ -19,6 +19,7 @@ export function handleChange(e) {
 }
 
 function App() {
+  const [lastUpdated, setLastUpdated] = useState("");
   const [pace, setPace] = useState("");
   const [time, setTime] = useState("");
   const [isMiles, setIsMiles] = useState(true);
@@ -30,12 +31,17 @@ function App() {
     setTime("");
     setRaceDistance("");
     setPace("");
+    setLastUpdated("");
   };
 
   const calculate = () => {
-    if (pace == "") {
+    if (lastUpdated === "time") {
       setPace(fetchPace());
-    } else {
+    } else if (lastUpdated === "pace") {
+      setTime(fetchTime());
+    } else if (pace === "") {
+      setPace(fetchPace());
+    } else if (time === "") {
       setTime(fetchTime());
     }
   };
@@ -54,7 +60,7 @@ function App() {
     axios.get(`http://127.0.0.1:8000/race_pace?finish_time=${encodedTime}&unit=${unit}&distance=${encodedDistance}`)
     .then(
       response => {
-        const paceData = `${response.data.pace} / ${unit}`
+        const paceData = `${response.data.pace}`
         setPace(paceData); 
       }
     )
@@ -90,10 +96,13 @@ function App() {
 
   const formatTime = (e) => {
     setTime(handleChange(e))
+    setLastUpdated("time")
+    
   }
 
   const formatPace = (e) => {
     setPace(handleChange(e))
+    setLastUpdated("pace")
   }
 
   const toggleUnit = () => {
