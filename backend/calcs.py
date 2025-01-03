@@ -10,91 +10,75 @@ KM_DISTANCES = {
     'Marathon': 42.195
 }
 
-def convert_units(distance: float, unit: Literal["km", "mi"]):
+def get_hms(seconds: int) -> int:
+    hours = seconds // 3600
+    minutes = (seconds % 3600) // 60
+    seconds = seconds % 60
+    return hours, minutes, seconds
+
+def parse_hhmmss_into_seconds(time_str:str) -> int:
+    parsed = time_str.split(":")
+    if len(parsed) > 2:
+        hours = int(parsed[0])
+        minutes = int(parsed[1])
+        seconds = int(parsed[2])
+    else:
+        hours = 0
+        minutes = int(parsed[0])
+        seconds = int(parsed[1])
+    total_seconds = hours * 3600 + minutes * 60 + seconds
+    return total_seconds
+
+def convert_units(distance: float, unit: Literal["km", "mi"]) -> float:
     if unit == 'km':
         return distance * 1.609
     elif unit == 'mi':
         return distance * 0.621
 
-def percentage_of_speed(pace: Pace, percentage: float):
+def percentage_of_speed(pace_time_seconds: int, percentage: float) -> int:
     # https://runningwritings.com/2013/02/brief-thoughts-calculating-percentages.html
     # "a linear change in speed(in m/s) for each incremental change in percent"
-    minutes = int(pace.time.split(':')[0])
-    seconds = int(pace.time.split(':')[1])
-    total_seconds = minutes * 60 + seconds
-    updated_pace_minutes = int(((total_seconds / percentage) // 60))
-    updated_pace_seconds = int(((total_seconds / percentage) % 60))
-    pace_params = {
-        "time": f"{updated_pace_minutes}:{updated_pace_seconds:02}",
-        "unit": pace.unit
-    }
-    new_pace = Pace(**pace_params)
-    return new_pace
+    updated_pace_seconds = int(round(pace_time_seconds / percentage, 0))
+    return updated_pace_seconds
 
-def percentage_of_pace(pace: Pace, percentage: float):
+def percentage_of_pace(pace_time_seconds: int, percentage: float) -> int:
     # https://runningwritings.com/2013/02/brief-thoughts-calculating-percentages.html
     # "for every incremental change in the percentage, the running pace, in minutes per mile,
     #  changes by a consistent amount"
-    minutes = int(pace.time.split(':')[0])
-    seconds = int(pace.time.split(':')[1])
-    total_seconds = minutes * 60 + seconds
-    updated_pace_minutes = int(((total_seconds * (1 + (1-percentage))) // 60))
-    updated_pace_seconds = int(((total_seconds * (1 + (1-percentage))) % 60))
-    pace_params = {
-        "time": f"{updated_pace_minutes}:{updated_pace_seconds:02}",
-        "unit": pace.unit
-    }
-    new_pace = Pace(**pace_params)
-    return new_pace
+    updated_pace_seconds = int(round((pace_time_seconds * (1 + (1-percentage))), 0))
+    return updated_pace_seconds
 
-def get_pace(finish_time: str,
-             unit: str,
-             distance: int):
-    parsed_time = finish_time.split(":")
-    total_seconds = int(parsed_time[0]) * 3600 + int(parsed_time[1]) * 60 + int(parsed_time[2])
-    pace = total_seconds / distance
-    pace_minutes = int(pace // 60)
-    pace_seconds = int(pace % 60)
-    pace_params = {
-        "time": f"{pace_minutes}:{pace_seconds:02}",
-        "unit": unit
-    }
-    return Pace(**pace_params)
+def get_pace(seconds: int,
+             distance: int) -> int:
+    pace = int(round(seconds / distance, 0))
+    return pace
 
-def get_time(pace: Pace,
-             distance: int):
-    parsed_time = pace.time.split(":")
-    if len(parsed_time) > 2:
-        total_pace_seconds = int(parsed_time[0]) * 3600 + int(parsed_time[1]) * 60 + int(parsed_time[2])
-    else:
-        total_pace_seconds = int(parsed_time[0]) * 60 + int(parsed_time[1])
-    total_time_seconds = int(total_pace_seconds * distance)
-    hours = total_time_seconds // 3600
-    minutes = (total_time_seconds % 3600)  // 60
-    seconds = total_pace_seconds % 60
-    if hours > 0:
-        total_time = f"{hours:02}:{minutes:02}:{seconds:02}"
-    elif minutes > 0:
-        total_time = f"{minutes:02}:{seconds:02}"
-    else:
-        total_time = f"{seconds}"
-    return total_time
+def get_time(pace_time_seconds: int,
+             distance: int) -> int:
+    total_time_seconds = int(round(pace_time_seconds * distance, 0))
+    return total_time_seconds
 
-def pfitz_long_run_pace(distance: int, marathon_pace:Pace):
+def pfitz_long_run_pace(distance: int,
+                        unit: str,
+                        marathon_pace_seconds: int) -> int:
     # linear increase from 20% to 10% slower than goal marathon pace
     # calculating percentage of pace
-    lower_bound = percentage_of_pace(marathon_pace, 0.8)
-    upper_bound = percentage_of_pace(marathon_pace, 0.9)
+    lower_bound = percentage_of_pace(marathon_pace_seconds, 0.8)
+    upper_bound = percentage_of_pace(marathon_pace_seconds, 0.9)
     step_size = (upper_bound - lower_bound) // distance
     paces = []
     for i in range(1, distance + 1):
         lower_bound -= step_size
         lower_target = lower_bound - 5
         upper_target = lower_bound + 5
+        hour, minute, second = get_hms(lower_target)
+        lower_target_pace = f"{minute}:{second:02}"
+        hour, minute, second = get_hms(upper_target)
+        upper_target_pace = f"{minute}:{second:02}"
         paces.append(
             {
-                f"{marathon_pace.unit}": i,
-                "Target Pace": f"{lower_target.time} to {upper_target.time}"
+                f"{unit}": i,
+                "Target Pace": f"{lower_target_pace} to {upper_target_pace}"
             }
         )
     return paces
