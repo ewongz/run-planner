@@ -294,7 +294,7 @@ function App() {
               label="Time (hh:mm:ss)"
               value={time}
               onChange={formatTime}
-              maxLength={8}>
+              maxLength={6}>
             </TextField>
           </FormControl>
 
@@ -306,7 +306,7 @@ function App() {
                 label="Pace (mm:ss)"
                 value={pace}
                 onChange={formatPace}
-                maxLength={6}>
+                maxLength={4}>
               </TextField>
             </FormControl>
             {/* Switch between mi/km */}
