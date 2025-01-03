@@ -60,7 +60,7 @@ def get_time(pace_time_seconds: int,
 
 def pfitz_long_run_pace(distance: int,
                         unit: str,
-                        marathon_pace_seconds: int) -> int:
+                        marathon_pace_seconds: int) -> list:
     # linear increase from 20% to 10% slower than goal marathon pace
     # calculating percentage of pace
     lower_bound = percentage_of_pace(marathon_pace_seconds, 0.8)
@@ -83,7 +83,7 @@ def pfitz_long_run_pace(distance: int,
         )
     return paces
 
-def heart_rate_zones(max_heart_rate: int):
+def heart_rate_zones(max_heart_rate: int) -> list:
     """
     Five Heart Rate Zones
     Zone	Intensity	% of HRmax	Purpose
