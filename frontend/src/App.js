@@ -5,7 +5,9 @@ import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import Box from '@mui/material/Box';
+import Container from '@mui/material/Container';
 import InputLabel from '@mui/material/InputLabel';
+import FormLabel from '@mui/material/FormLabel';
 import FormGroup from '@mui/material/FormGroup';
 import FormControl from '@mui/material/FormControl';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -15,112 +17,67 @@ import Switch from '@mui/material/Switch';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import "./App.css";
-import { createTheme, ThemeProvider, CssBaseline } from '@mui/material';
+import { createTheme, Radio, RadioGroup, ThemeProvider, useColorScheme } from '@mui/material';
 
-const darkTheme = createTheme({
-  palette: {
-    mode: 'dark', // Enables dark mode
-    background: {
-      default: '#121212', // Primary background color
-      paper: '#1E1E1E', // Card or elevated surface background color
+const getTheme = (mode) =>
+  createTheme({
+    palette: {
+      mode, // Dynamically set mode ('light' or 'dark')
+      background: {
+        default: mode === "dark" ? "#121212" : "#F5F5F5",
+        paper: mode === "dark" ? "#1E1E1E" : "#FFFFFF",
+      },
+      primary: {
+        main: mode === "dark" ? "#BB86FC" : "#6200EE",
+        contrastText: "#FFFFFF",
+        hover: mode === "dark" ? "#985EFF" : "#5D00E6",
+      },
+      secondary: {
+        main: mode === "dark" ? "#03DAC6" : "#018786",
+        contrastText: mode === "dark" ? "#000000" : "#FFFFFF",
+        hover: mode === "dark" ? "#02C7AF" : "#017673",
+      },
+      text: {
+        primary: mode === "dark" ? "#FFFFFF" : "#212121",
+        secondary: mode === "dark" ? "#B0B0B0" : "#757575",
+        disabled: mode === "dark" ? "#666666" : "#BDBDBD",
+      },
+      divider: mode === "dark" ? "#333333" : "#E0E0E0",
     },
-    primary: {
-      main: '#BB86FC', // Primary color (light purple)
-      contrastText: '#FFFFFF', // Text color on primary surfaces
+    typography: {
+      fontFamily: "Roboto, Arial, sans-serif",
+      h1: { fontSize: "2.5rem", fontWeight: 600, color: mode === "dark" ? "#FFFFFF" : "#212121" },
+      h2: { fontSize: "2rem", fontWeight: 500, color: mode === "dark" ? "#FFFFFF" : "#212121" },
+      body1: { fontSize: "1rem", color: mode === "dark" ? "#E0E0E0" : "#424242" },
+      body2: { fontSize: "0.875rem", color: mode === "dark" ? "#B0B0B0" : "#757575" },
     },
-    secondary: {
-      main: '#03DAC6', // Secondary color (teal)
-      contrastText: '#000000', // Text color on secondary surfaces
-    },
-    text: {
-      primary: '#FFFFFF', // Main text color
-      secondary: '#B0B0B0', // Secondary text color
-      disabled: '#666666', // Disabled text color
-    },
-    divider: '#333333', // Divider color
-  },
-  typography: {
-    fontFamily: 'Roboto, Arial, sans-serif',
-    h1: { fontSize: '2.5rem', fontWeight: 600 },
-    h2: { fontSize: '2rem', fontWeight: 500 },
-    body1: { fontSize: '1rem', color: '#E0E0E0' }, // Default text
-    body2: { fontSize: '0.875rem', color: '#B0B0B0' }, // Secondary text
-  },
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: '8px', // Rounded corners
-          textTransform: 'none', // Disable uppercase transformation
+    components: {
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            borderRadius: "8px",
+            textTransform: "none",
+            "&:hover": {
+              backgroundColor: mode === "dark" ? "#985EFF" : "#a574fc",
+            },
+          },
+          contained: {
+            boxShadow: mode === "dark" ? "0px 4px 6px rgba(0, 0, 0, 0.2)" : "0px 2px 4px rgba(0, 0, 0, 0.1)",
+          },
         },
-        contained: {
-          boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.2)', // Add a subtle shadow
+      },
+      MuiPaper: {
+        styleOverrides: {
+          root: {
+            backgroundColor: mode === "dark" ? "#1E1E1E" : "#FFFFFF",
+            borderRadius: "12px",
+            boxShadow: mode === "dark" ? "none" : "0px 2px 8px rgba(0, 0, 0, 0.1)",
+          },
         },
       },
     },
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          backgroundColor: '#1E1E1E', // Paper background color
-          borderRadius: '12px', // Rounded corners
-        },
-      },
-    },
-  },
-});
+  });
 
-const lightTheme = createTheme({
-  palette: {
-    mode: 'light', // Enables light mode
-    background: {
-      default: '#F5F5F5', // Light gray background for the app
-      paper: '#FFFFFF', // Pure white for cards or elevated surfaces
-    },
-    primary: {
-      main: '#6200EE', // Rich purple for primary actions
-      contrastText: '#FFFFFF', // White text on primary surfaces
-    },
-    secondary: {
-      main: '#018786', // Teal for secondary actions
-      contrastText: '#FFFFFF', // White text on secondary surfaces
-    },
-    text: {
-      primary: '#212121', // Dark gray for primary text
-      secondary: '#757575', // Medium gray for secondary text
-      disabled: '#BDBDBD', // Light gray for disabled text
-    },
-    divider: '#E0E0E0', // Light gray for dividers
-  },
-  typography: {
-    fontFamily: 'Roboto, Arial, sans-serif',
-    h1: { fontSize: '2.5rem', fontWeight: 600, color: '#212121' },
-    h2: { fontSize: '2rem', fontWeight: 500, color: '#212121' },
-    body1: { fontSize: '1rem', color: '#424242' }, // Default body text
-    body2: { fontSize: '0.875rem', color: '#757575' }, // Secondary body text
-  },
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: '8px', // Rounded corners for buttons
-          textTransform: 'none', // Disable uppercase transformation
-        },
-        contained: {
-          boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)', // Light shadow
-        },
-      },
-    },
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          backgroundColor: '#FFFFFF', // Paper surface color
-          borderRadius: '12px', // Rounded corners
-          boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)', // Subtle shadow
-        },
-      },
-    },
-  },
-});
 
 // Function to handle input change for time
 export function handleChange(e) {
@@ -145,6 +102,13 @@ function App() {
   const [isMiles, setIsMiles] = useState(true);
   const [raceDistance, setRaceDistance] = useState("Marathon");
   const [error, setError] = useState("");
+  const [mode, setMode] = useState("light"); // 'light' or 'dark'
+
+  const handleThemeToggle = (event) => {
+    setMode(event.target.checked ? "dark" : "light"); // Toggle theme mode
+  };
+
+  const theme = getTheme(mode);
 
   const reset = () => {
     setError(""); // Clear previous errors
@@ -249,12 +213,41 @@ function App() {
   };
 
   return (
-    <div className="App">
-        <header className="App-header">
+    <ThemeProvider theme={theme}>
+    <Box
+      sx={{
+        display: "flex",
+        height:"100vh",
+        alignItems: "center",
+        justifyContent: "center",
+        bgcolor: "background.default",
+        color: "text.primary",
+        borderRadius: 1,
+        p: 3
+      }}
+    > 
+      <Stack spacing={0.15} sx={{alisgnItems: "left"}}>
+        <header>
             <h1>{"Marathon Training Planner"}</h1>
         </header>
-        {/* <div className="Pace-calculator"> */}
-        <ThemeProvider theme={darkTheme}>
+        <FormControl sx={{p:2, m:1, minWidth:25 }}>
+            {/* Switch between themes */}
+            <Stack direction="row" spacing={0.02} sx={{ alignItems: "center"}}>
+              <Typography variant="caption" color="text.primary" sx={{ fontSize: "15px"}}>
+                Light
+              </Typography>
+              <Switch
+                onChange={handleThemeToggle}
+                size="small"
+              />
+              <Typography variant="caption" color="text.primary" sx={{ fontSize: "15px"}}>
+                Dark
+              </Typography>
+            </Stack>
+          </FormControl>
+      </Stack>
+
+        {/* Pace-calculator"*/}
         <Box
           component="form"
           sx={{ m:15,
@@ -350,8 +343,8 @@ function App() {
           {error && <p style={{ color: "red" }}>{error}</p>}
           </Stack>
           </Box>
-          </ThemeProvider>
-    </div>
+    </Box>
+    </ThemeProvider>
   );
 }
 
