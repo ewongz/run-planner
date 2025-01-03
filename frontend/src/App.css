@@ -1,6 +1,6 @@
 .App {
   text-align: center;
-  background-color: #3c424e;
+  background-color: #121212;
   min-height: 100vh;
 }
 
@@ -16,14 +16,14 @@
 }
 
 .App-header {
-  background-color: #3c424e;
+  /* background-color: #03DAC6; */
   min-height: 8vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   font-size: calc(5px + 2vmin);
-  color: white;
+  color: #FFFFFF;
 }
 
 .Pace-calculator {
@@ -133,7 +133,7 @@ button:hover {
   font-size: 16px;
   font-weight: bold;
   color: white;
-  background-color: #007bff;
+  background-color: #5e99be;
   border: 1px solid #ccc; /* Border style */
   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Optional shadow */
   border-radius: 5px;
@@ -143,7 +143,7 @@ button:hover {
 }
 
 .toggle-button:hover {
-  background-color: #0056b3;
+  background-color: #5178a1;
 }
 
 .rowC {

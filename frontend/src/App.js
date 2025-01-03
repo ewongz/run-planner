@@ -69,6 +69,59 @@ const darkTheme = createTheme({
   },
 });
 
+const lightTheme = createTheme({
+  palette: {
+    mode: 'light', // Enables light mode
+    background: {
+      default: '#F5F5F5', // Light gray background for the app
+      paper: '#FFFFFF', // Pure white for cards or elevated surfaces
+    },
+    primary: {
+      main: '#6200EE', // Rich purple for primary actions
+      contrastText: '#FFFFFF', // White text on primary surfaces
+    },
+    secondary: {
+      main: '#018786', // Teal for secondary actions
+      contrastText: '#FFFFFF', // White text on secondary surfaces
+    },
+    text: {
+      primary: '#212121', // Dark gray for primary text
+      secondary: '#757575', // Medium gray for secondary text
+      disabled: '#BDBDBD', // Light gray for disabled text
+    },
+    divider: '#E0E0E0', // Light gray for dividers
+  },
+  typography: {
+    fontFamily: 'Roboto, Arial, sans-serif',
+    h1: { fontSize: '2.5rem', fontWeight: 600, color: '#212121' },
+    h2: { fontSize: '2rem', fontWeight: 500, color: '#212121' },
+    body1: { fontSize: '1rem', color: '#424242' }, // Default body text
+    body2: { fontSize: '0.875rem', color: '#757575' }, // Secondary body text
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: '8px', // Rounded corners for buttons
+          textTransform: 'none', // Disable uppercase transformation
+        },
+        contained: {
+          boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)', // Light shadow
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          backgroundColor: '#FFFFFF', // Paper surface color
+          borderRadius: '12px', // Rounded corners
+          boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)', // Subtle shadow
+        },
+      },
+    },
+  },
+});
+
 // Function to handle input change for time
 export function handleChange(e) {
   let value = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric characters except :
@@ -170,7 +223,7 @@ function App() {
   const distances = [
     {
       value: '5K',
-      label: '5k'
+      label: '5K'
     },
     {
       value: '10K',
@@ -208,6 +261,7 @@ function App() {
                 p: 2,
                 width: "25ch",
                 border: "1px solid grey",
+                bgcolor: "background.paper",
                 boxShadow: 1,
                 borderRadius: 2
               }}
@@ -257,7 +311,7 @@ function App() {
             </FormControl>
             {/* Switch between mi/km */}
             <Stack direction="row" spacing={0.02} sx={{ alignItems: "center"}}>
-              <Typography variant="caption" color="#FFFFFF" sx={{ fontSize: "15px"}}>
+              <Typography variant="caption" color="text.primary" sx={{ fontSize: "15px"}}>
                 km
               </Typography>
               <Switch 
@@ -265,7 +319,7 @@ function App() {
                 onChange={switchUnit}
                 size="small"
               />
-              <Typography variant="caption" color="#FFFFFF" sx={{ fontSize: "15px"}}>
+              <Typography variant="caption" color="text.primary" sx={{ fontSize: "15px"}}>
                 mi
               </Typography>
             </Stack>
@@ -275,12 +329,18 @@ function App() {
             {/* Button to Trigger GET Request */}
             <Button variant="contained"
               onClick={calculate}
+              sx={{
+                fontWeight: "bold"
+              }}
               >🏃 Calculate </Button>
             {/* Button to Clear User Input */}
             <Button 
               variant="outlined"
               onClick={reset}
               startIcon={<RestartAltIcon />}
+              sx={{
+                fontWeight: "bold"
+              }}
             >
               Reset
             </Button>
