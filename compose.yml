@@ -9,6 +9,8 @@ services:
     # Interactive shell container
     stdin_open: true
     tty: true
+    environment:
+      - PYTHONUNBUFFERED=0
     develop:
       # Create a `watch` configuration to update the appl
       # https://docs.docker.com/compose/file-watch/#compose-watch-versus-bind-mounts
