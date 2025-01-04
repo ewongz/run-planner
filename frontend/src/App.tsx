@@ -1,25 +1,19 @@
+//@ts-check
 import React, {useState} from "react";
 import axios from "axios";
-import { styled } from '@mui/material/styles';
 import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import Box from '@mui/material/Box';
-import Container from '@mui/material/Container';
-import InputLabel from '@mui/material/InputLabel';
-import FormLabel from '@mui/material/FormLabel';
-import FormGroup from '@mui/material/FormGroup';
 import FormControl from '@mui/material/FormControl';
-import FormControlLabel from '@mui/material/FormControlLabel';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import Switch from '@mui/material/Switch';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { createTheme, ThemeProvider, PaletteMode} from '@mui/material';
 import "./App.css";
-import { createTheme, Radio, RadioGroup, ThemeProvider, useColorScheme } from '@mui/material';
 
-const getTheme = (mode) =>
+const getTheme = (mode: PaletteMode) =>
   createTheme({
     palette: {
       mode, // Dynamically set mode ('light' or 'dark')
@@ -30,12 +24,10 @@ const getTheme = (mode) =>
       primary: {
         main: mode === "dark" ? "#BB86FC" : "#6200EE",
         contrastText: "#FFFFFF",
-        hover: mode === "dark" ? "#985EFF" : "#5D00E6",
       },
       secondary: {
         main: mode === "dark" ? "#03DAC6" : "#018786",
         contrastText: mode === "dark" ? "#000000" : "#FFFFFF",
-        hover: mode === "dark" ? "#02C7AF" : "#017673",
       },
       text: {
         primary: mode === "dark" ? "#FFFFFF" : "#212121",
@@ -80,7 +72,7 @@ const getTheme = (mode) =>
 
 
 // Function to handle input change for time
-export function handleChange(e) {
+export function handleChange(e: { target: { value: string; }; }) {
   let value = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric characters except :
   // Add colon at appropriate positions
   if (value.length > 2 && value.length <= 3) {
@@ -102,9 +94,9 @@ function App() {
   const [isMiles, setIsMiles] = useState(true);
   const [raceDistance, setRaceDistance] = useState("Marathon");
   const [error, setError] = useState("");
-  const [mode, setMode] = useState("light"); // 'light' or 'dark'
+  const [mode, setMode] = useState<PaletteMode>("light"); // 'light' or 'dark'
 
-  const handleThemeToggle = (event) => {
+  const handleThemeToggle = (event: React.ChangeEvent<HTMLInputElement>) => {
     setMode(event.target.checked ? "dark" : "light"); // Toggle theme mode
   };
 
@@ -120,13 +112,13 @@ function App() {
 
   const calculate = () => {
     if (lastUpdated === "time") {
-      setPace(fetchPace());
+      fetchPace();
     } else if (lastUpdated === "pace") {
-      setTime(fetchTime());
+      fetchTime();
     } else if (pace === "") {
-      setPace(fetchPace());
+      fetchPace();
     } else if (time === "") {
-      setTime(fetchTime());
+      fetchTime();
     }
   };
 
@@ -178,7 +170,7 @@ function App() {
     });
   }
 
-  const formatTime = (e) => {
+  const formatTime = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTime(handleChange(e))
     setLastUpdated("time")
     
@@ -203,7 +195,7 @@ function App() {
     }
   ]
 
-  const formatPace = (e) => {
+  const formatPace = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPace(handleChange(e))
     setLastUpdated("pace")
   }
@@ -287,7 +279,7 @@ function App() {
               label="Time (hh:mm:ss)"
               value={time}
               onChange={formatTime}
-              maxLength={6}>
+            >
             </TextField>
           </FormControl>
 
@@ -299,7 +291,7 @@ function App() {
                 label="Pace (mm:ss)"
                 value={pace}
                 onChange={formatPace}
-                maxLength={4}>
+              >
               </TextField>
             </FormControl>
             {/* Switch between mi/km */}
