@@ -2,7 +2,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from . import routers
 
-app = FastAPI(title="Marathon Training Planner")
+app = FastAPI(title="Marathon Training Planner",
+              docs_url="/docs",
+              redoc_url="/")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
