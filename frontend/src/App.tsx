@@ -11,7 +11,6 @@ import Switch from '@mui/material/Switch';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { createTheme, ThemeProvider, PaletteMode} from '@mui/material';
-import "./App.css";
 
 const getTheme = (mode: PaletteMode) =>
   createTheme({
@@ -88,12 +87,12 @@ export function handleChange(e: { target: { value: string; }; }) {
 }
 
 function App() {
-  const [lastUpdated, setLastUpdated] = useState("");
-  const [pace, setPace] = useState("");
-  const [time, setTime] = useState("");
-  const [isMiles, setIsMiles] = useState(true);
-  const [raceDistance, setRaceDistance] = useState("Marathon");
-  const [error, setError] = useState("");
+  const [lastUpdated, setLastUpdated] = useState<string>("");
+  const [pace, setPace] = useState<string>("");
+  const [time, setTime] = useState<string>("");
+  const [isMiles, setIsMiles] = useState<boolean>(true);
+  const [raceDistance, setRaceDistance] = useState<string>("Marathon");
+  const [error, setError] = useState<string>("");
   const [mode, setMode] = useState<PaletteMode>("light"); // 'light' or 'dark'
 
   const handleThemeToggle = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -173,8 +172,16 @@ function App() {
   const formatTime = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTime(handleChange(e))
     setLastUpdated("time")
-    
   }
+
+  const formatPace = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPace(handleChange(e))
+    setLastUpdated("pace")
+  }
+
+  const switchUnit = () => {
+    setIsMiles((prevState) => !prevState)
+  };
 
   const distances = [
     {
@@ -194,15 +201,6 @@ function App() {
       label: 'Marathon'
     }
   ]
-
-  const formatPace = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPace(handleChange(e))
-    setLastUpdated("pace")
-  }
-
-  const switchUnit = () => {
-    setIsMiles((prevState) => !prevState)
-  };
 
   return (
     <ThemeProvider theme={theme}>
@@ -279,6 +277,9 @@ function App() {
               label="Time (hh:mm:ss)"
               value={time}
               onChange={formatTime}
+              inputProps={{
+                maxLength: 8
+              }}
             >
             </TextField>
           </FormControl>
@@ -291,6 +292,9 @@ function App() {
                 label="Pace (mm:ss)"
                 value={pace}
                 onChange={formatPace}
+                inputProps={{
+                  maxLength: 5
+                }}
               >
               </TextField>
             </FormControl>
