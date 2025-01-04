@@ -13,7 +13,7 @@ RUN npm install --legacy-peer-deps
 # Install 'serve' globally to serve the build
 RUN npm install -g serve
 
-ADD . /app
+COPY . /app
 
 # Step 6: Build the React app for production
 RUN npm run build
