@@ -5,7 +5,7 @@ name: Python Backend for Marathon Training Planner
 
 on:
   push:
-    branches: [ "main", "pace_calculator" ]
+    branches: 
   pull_request:
     branches: [ "main" ]
 
