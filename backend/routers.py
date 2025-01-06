@@ -49,6 +49,19 @@ def heart_rate_zones(max_heart_rate: Annotated[int, "maximum heart rate"] = 185)
     zones = calcs.heart_rate_zones(max_heart_rate)
     return zones
 
+@router.get("/pace_percentage")
+def pace_percentage(pace: Annotated[str | None, Query(pattern="^[^:]*(:[^:]*:?[^:]*|[^:]*:)$")] = "6:00",
+              method: Annotated[Literal["pace", "speed"], "calculation method"] = "pace",
+              percentage: Annotated[int, "percentage"] = 95):
+    total_time_seconds = calcs.parse_hhmmss_into_seconds(pace)
+    if method == "pace":
+        updated_pace = calcs.percentage_of_pace(total_time_seconds, percentage * 0.01)
+    elif method == "speed":
+        updated_pace = calcs.percentage_of_speed(total_time_seconds, percentage * 0.01)
+    h, m, s = calcs.get_hms(updated_pace)
+    formatted_pace =  f"{m}:{s:02}"
+    return {"pace": formatted_pace}
+
 @router.get("/")
 def read_root():
     return {"text": "Marathon Training Planner"}
