@@ -14,7 +14,14 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import AppBar from '@mui/material/AppBar';
 import { createTheme, ThemeProvider, PaletteMode, InputAdornment} from '@mui/material';
-import { Percent } from "@mui/icons-material";
+import { Percent, RowingTwoTone } from "@mui/icons-material";
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Paper from '@mui/material/Paper';
 
 const getTheme = (mode: PaletteMode) =>
   createTheme({
@@ -94,11 +101,7 @@ export function TabPanel(props: TabPanelProps) {
           component="form"
           sx={{ m: 3,
                 p: 2,
-          //       width: "25ch",
-          //       border: "1px solid grey",
-          //       bgcolor: "background.paper",
-          //       boxShadow: 1,
-          //       borderRadius: 2
+                // width: "25ch",
               }}
         >
           {children}
@@ -139,7 +142,7 @@ function App() {
   const [mode, setMode] = useState<PaletteMode>("light"); // 'light' or 'dark'
   const [value, setValue] = React.useState(0);
   const [percentage, setPercentage] = useState<string>("90");
-  const [workoutPaces, setWorkoutPaces] = useState<string[]>([]);
+  const [workoutPaces, setWorkoutPaces] = useState<[]>([]);
 
   const handleTabChange = (event: React.ChangeEvent<{}>, newValue: number) => {
     setValue(newValue);
@@ -225,22 +228,16 @@ function App() {
   const fetchPacePercentages = () => {
     setError(""); // Clear previous errors
     const encodedPace = encodeURIComponent(pace)
-    const resultList: string[] = [];
-
-    for (let pacePercentage = 80; pacePercentage <= 115; pacePercentage += 5){
-      axios.get(`http://127.0.0.1:8000/pace_percentage?pace=${encodedPace}&method=pace&percentage=${pacePercentage}`)
-      .then(
-        response => {
-          const updatedPace = `${response.data.pace}`;
-          resultList.push(updatedPace);
-        }
-      )
-      .catch(err => {
-        console.error("Error fetching data:", err);
-        setError("Failed to fetch pace.")
-      });
-    }
-    setWorkoutPaces(resultList)
+    axios.get(`http://127.0.0.1:8000/pace_workouts?pace=${encodedPace}&method=pace`)
+    .then(
+      response => {
+        setWorkoutPaces(response.data.workout_paces);
+      }
+    )
+    .catch(err => {
+      console.error("Error fetching data:", err);
+      setError("Failed to fetch pace.")
+    });
   };
 
   const formatTime = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -294,29 +291,32 @@ function App() {
         p: 3
       }}
     > 
-      <Stack spacing={0.15} sx={{alignItems: "left"}}>
-        <header>
-            <h1>{"Marathon Training Planner"}</h1>
-        </header>
-        <FormControl sx={{p:2, m:1, minWidth:25 }}>
-            {/* Switch between themes */}
-            <Stack direction="row" spacing={0.02} sx={{ alignItems: "center"}}>
-              <Typography variant="caption" color="text.primary" sx={{ fontSize: "15px"}}>
-                Light
-              </Typography>
-              <Switch
-                onChange={handleThemeToggle}
-                size="small"
-              />
-              <Typography variant="caption" color="text.primary" sx={{ fontSize: "15px"}}>
-                Dark
-              </Typography>
-            </Stack>
-          </FormControl>
+      <Stack spacing={5} sx={{alignItems: "center", justifyContent:"space-evenly"}}>
+        <Stack spacing={0.25} sx={{alignItems: "left"}}>
+          <header>
+              <h1>{"Marathon Training Planner"}</h1>
+          </header>
+          <FormControl sx={{ p:2, m:1, minWidth:25 }}>
+              {/* Switch between themes */}
+              <Stack direction="row" spacing={0.02} sx={{ alignItems: "center"}}>
+                <Typography variant="caption" color="text.primary" sx={{ fontSize: "15px"}}>
+                  Light
+                </Typography>
+                <Switch
+                  onChange={handleThemeToggle}
+                  size="small"
+                />
+                <Typography variant="caption" color="text.primary" sx={{ fontSize: "15px"}}>
+                  Dark
+                </Typography>
+              </Stack>
+            </FormControl>
+        </Stack>
         {/* Pace-calculator"*/}
         <AppBar
           position="relative"
           color="default"
+          sx={{ m:3, minWidth:750}}
         >
           <Tabs
             value={value}
@@ -495,9 +495,31 @@ function App() {
               {/* Error Message */}
               {error && <p style={{ color: "red" }}>{error}</p>}
               {/* Workout Paces*/}
-              <Typography>
-                {workoutPaces}
-              </Typography>
+              <TableContainer component={Paper}>
+                <Table sx={{ maxWidth:650 }} size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell align="left">Percentage of Pace</TableCell>
+                      <TableCell align="left">Designation</TableCell>
+                      <TableCell align="left">Pace Range</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {workoutPaces.map((row) => (
+                      <TableRow
+                        key={row["Percentage of Pace"]}
+                        sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                      >
+                        <TableCell align="left">
+                          {`${row["Percentage of Pace"]}%`}
+                        </TableCell>
+                        <TableCell align="left">{row["Designation"]}</TableCell>
+                        <TableCell align="left">{row["Pace"]}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
             </Stack>
           </TabPanel>
         </AppBar>
