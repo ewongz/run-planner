@@ -166,7 +166,6 @@ function App() {
   const calculate = () => {
     if (lastUpdated === "time") {
       fetchPace();
-      fetchPacePercentages();
     } else if (lastUpdated === "pace") {
       fetchTime();
     } else if (pace === "") {
@@ -292,7 +291,7 @@ function App() {
       }}
     > 
       <Stack spacing={5} sx={{alignItems: "center", justifyContent:"space-evenly"}}>
-        <Stack spacing={0.25} sx={{alignItems: "left"}}>
+        <Stack direction="row" spacing={2} sx={{alignItems: "center", justifyContent:"space-around"}}>
           <header>
               <h1>{"Marathon Training Planner"}</h1>
           </header>
@@ -316,14 +315,14 @@ function App() {
         <AppBar
           position="relative"
           color="default"
-          sx={{ m:3, minWidth:750}}
+          sx={{ m:3, p:2}}
         >
           <Tabs
             value={value}
             onChange={handleTabChange}
             indicatorColor="primary"
             textColor="primary"
-            variant="standard"
+            variant="fullWidth"
             centered
             >
               <Tab label="Calculator" />
@@ -456,20 +455,6 @@ function App() {
                   >
                   </TextField>
                 </FormControl>
-                {/* Switch between mi/km */}
-                <Stack direction="row" spacing={0.02} sx={{ alignItems: "center"}}>
-                  <Typography variant="caption" color="text.primary" sx={{ fontSize: "15px"}}>
-                    km
-                  </Typography>
-                  <Switch 
-                    defaultChecked
-                    onChange={switchUnit}
-                    size="small"
-                  />
-                  <Typography variant="caption" color="text.primary" sx={{ fontSize: "15px"}}>
-                    mi
-                  </Typography>
-                </Stack>
               </Stack>
               
               <Stack direction="row" spacing={1} sx={{ alignItems: "center"}}>
