@@ -69,8 +69,8 @@ def pfitz_long_run_pace(distance: int,
     paces = []
     for i in range(1, distance + 1):
         lower_bound -= step_size
-        lower_target = lower_bound - 5
-        upper_target = lower_bound + 5
+        lower_target = lower_bound - 2
+        upper_target = lower_bound + 2
         hour, minute, second = get_hms(lower_target)
         lower_target_pace = f"{minute}:{second:02}"
         hour, minute, second = get_hms(upper_target)

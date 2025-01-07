@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Query
 from . import calcs
-from .models import Pace
+from .models import workout_paces
 from typing import Literal, Annotated
 router = APIRouter()
 
@@ -61,6 +61,29 @@ def pace_percentage(pace: Annotated[str | None, Query(pattern="^[^:]*(:[^:]*:?[^
     h, m, s = calcs.get_hms(updated_pace)
     formatted_pace =  f"{m}:{s:02}"
     return {"pace": formatted_pace}
+
+@router.get("/pace_workouts")
+def pace_workouts(pace: Annotated[str | None, Query(pattern="^[^:]*(:[^:]*:?[^:]*|[^:]*:)$")] = "6:00",
+                  method: Annotated[Literal["pace", "speed"], "calculation method"] = "pace"):
+    total_time_seconds = calcs.parse_hhmmss_into_seconds(pace)
+    buffer = 2 # +- 2 second range around percentage of pace
+    if method == "pace":
+        update_pace = calcs.percentage_of_pace
+    elif method == "speed":
+        update_pace = calcs.percentage_of_speed
+    paces = []
+    for p in workout_paces:
+        percentage = p["Percentage of Pace"]
+        new_pace = update_pace(total_time_seconds, percentage * 0.01)
+        pace_floor = new_pace - buffer
+        pace_ceil = new_pace + buffer
+        h, m, s = calcs.get_hms(pace_floor)
+        formatted_pace_floor = f"{m}:{s:02}"
+        h, m, s = calcs.get_hms(pace_ceil)
+        formatted_pace_ceil = f"{m}:{s:02}"
+        p["Pace"] = f"{formatted_pace_floor} to {formatted_pace_ceil}"
+        paces.append(p)
+    return {"workout_paces": paces}
 
 @router.get("/")
 def read_root():
