@@ -40,8 +40,8 @@ def race_time(pace: Annotated[str | None, Query(pattern="^[^:]*(:[^:]*:?[^:]*|[^
 def pfitz_long_run_pace(distance: Annotated[int, "distance of long run"] = 15,
                         marathon_pace: Annotated[str | None, Query(pattern="^[^:]*(:[^:]*:?[^:]*|[^:]*:)$")] = "6:30",
                         unit: Annotated[Literal["mi", "km"], "pace units in km or mi"] = "mi"):
-    m_pace = Pace(time=marathon_pace, unit=unit)
-    result = calcs.pfitz_long_run_pace(distance, m_pace)
+    m_pace = calcs.parse_hhmmss_into_seconds(marathon_pace)
+    result = calcs.pfitz_long_run_pace(distance, unit, m_pace)
     return result
 
 @router.get("/heart_rate_zones")

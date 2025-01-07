@@ -65,7 +65,7 @@ def pfitz_long_run_pace(distance: int,
     # calculating percentage of pace
     lower_bound = percentage_of_pace(marathon_pace_seconds, 0.8)
     upper_bound = percentage_of_pace(marathon_pace_seconds, 0.9)
-    step_size = (upper_bound - lower_bound) // distance
+    step_size = (lower_bound - upper_bound) // distance
     paces = []
     for i in range(1, distance + 1):
         lower_bound -= step_size
