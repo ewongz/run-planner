@@ -3,6 +3,7 @@ import React, {useState} from "react";
 import axios from "axios";
 import Button from '@mui/material/Button';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import CssBaseline from "@mui/material/CssBaseline";
 import Box from '@mui/material/Box';
 import FormControl from '@mui/material/FormControl';
 import TextField from '@mui/material/TextField';
@@ -23,6 +24,7 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
+import { Global } from "@emotion/react";
 
 const getTheme = (mode: PaletteMode) =>
   createTheme({
@@ -279,7 +281,11 @@ function App() {
 
   return (
     <ThemeProvider theme={theme}>
-    <Toolbar sx={{ bgcolor:"background.default"}}>
+      <CssBaseline />
+    <Toolbar sx={{
+      m:2,
+      p:1,
+    }}>
       <Typography variant="h6" color="text.primary">Marathon Training Planner</Typography>
       <FormControl sx={{ p:2, m:1, minWidth:25 }}>
         {/* Switch between themes */}
@@ -309,12 +315,12 @@ function App() {
         p: 3
       }}
     > 
-      <Stack spacing={5} sx={{alignItems: "center", justifyContent:"space-evenly"}}>
+      <Stack spacing={3} direction="row" sx={{alignItems: "center", justifyContent:"space-evenly"}}>
         {/* Pace-calculator"*/}
         <AppBar
           position="relative"
           color="default"
-          sx={{ m:3, p:2}}
+          sx={{maxHeight: "610px"}}
         >
           <Tabs
             value={value}
@@ -507,6 +513,7 @@ function App() {
             </Stack>
           </TabPanel>
         </AppBar>
+        
         </Stack>
     </Box>
     </ThemeProvider>
