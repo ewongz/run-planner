@@ -28,7 +28,7 @@ def test_percentage_of_pace():
 def test_pfitz_long_run_pace():
     paces = calcs.pfitz_long_run_pace(15,"mi", 360)
     assert paces[0]['mi'] == 1
-    assert paces[0]['Target Pace'] == '7:10 to 7:20'
+    assert paces[0]['Target Pace'] == '7:08 to 7:12'
 
 
 

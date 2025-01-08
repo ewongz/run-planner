@@ -3,6 +3,7 @@ import React, {useState} from "react";
 import axios from "axios";
 import Button from '@mui/material/Button';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import CssBaseline from "@mui/material/CssBaseline";
 import Box from '@mui/material/Box';
 import FormControl from '@mui/material/FormControl';
 import TextField from '@mui/material/TextField';
@@ -10,7 +11,20 @@ import MenuItem from '@mui/material/MenuItem';
 import Switch from '@mui/material/Switch';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { createTheme, ThemeProvider, PaletteMode} from '@mui/material';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
+import AppBar from '@mui/material/AppBar';
+import Toolbar from "@mui/material/Toolbar";
+import { createTheme, ThemeProvider, PaletteMode, InputAdornment} from '@mui/material';
+import { Percent, RowingTwoTone } from "@mui/icons-material";
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Paper from '@mui/material/Paper';
+import { Global } from "@emotion/react";
 
 const getTheme = (mode: PaletteMode) =>
   createTheme({
@@ -69,6 +83,36 @@ const getTheme = (mode: PaletteMode) =>
     },
   });
 
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: any;
+  value: any;
+}
+
+export function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box
+          component="form"
+          sx={{ m: 3,
+                p: 2,
+                // width: "25ch",
+              }}
+        >
+          {children}
+        </Box>
+      )}
+    </div>
+  );
+}
 
 // Function to handle input change for time
 export function handleChange(e: { target: { value: string; }; }) {
@@ -86,6 +130,11 @@ export function handleChange(e: { target: { value: string; }; }) {
   return value;
 }
 
+export function handlePercentageInput(e: { target: { value: string; }; }) {
+  let value = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric characters except :
+  return value;
+}
+
 function App() {
   const [lastUpdated, setLastUpdated] = useState<string>("");
   const [pace, setPace] = useState<string>("");
@@ -94,6 +143,13 @@ function App() {
   const [raceDistance, setRaceDistance] = useState<string>("Marathon");
   const [error, setError] = useState<string>("");
   const [mode, setMode] = useState<PaletteMode>("light"); // 'light' or 'dark'
+  const [value, setValue] = React.useState(0);
+  const [percentage, setPercentage] = useState<string>("90");
+  const [workoutPaces, setWorkoutPaces] = useState<[]>([]);
+
+  const handleTabChange = (event: React.ChangeEvent<{}>, newValue: number) => {
+    setValue(newValue);
+  };
 
   const handleThemeToggle = (event: React.ChangeEvent<HTMLInputElement>) => {
     setMode(event.target.checked ? "dark" : "light"); // Toggle theme mode
@@ -107,6 +163,7 @@ function App() {
     setRaceDistance("");
     setPace("");
     setLastUpdated("");
+    setWorkoutPaces([]);
   };
 
   const calculate = () => {
@@ -169,6 +226,22 @@ function App() {
     });
   }
 
+  // Calculate Pace Percentages
+  const fetchPacePercentages = () => {
+    setError(""); // Clear previous errors
+    const encodedPace = encodeURIComponent(pace)
+    axios.get(`http://127.0.0.1:8000/pace_workouts?pace=${encodedPace}&method=pace`)
+    .then(
+      response => {
+        setWorkoutPaces(response.data.workout_paces);
+      }
+    )
+    .catch(err => {
+      console.error("Error fetching data:", err);
+      setError("Failed to fetch pace.")
+    });
+  };
+
   const formatTime = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTime(handleChange(e))
     setLastUpdated("time")
@@ -177,6 +250,10 @@ function App() {
   const formatPace = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPace(handleChange(e))
     setLastUpdated("pace")
+  }
+
+  const formatPercentage = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPercentage(handlePercentageInput(e))
   }
 
   const switchUnit = () => {
@@ -204,6 +281,29 @@ function App() {
 
   return (
     <ThemeProvider theme={theme}>
+      <CssBaseline />
+    <Toolbar sx={{
+      m:2,
+      p:1,
+    }}>
+      <Typography variant="h6" color="text.primary">Marathon Training Planner</Typography>
+      <FormControl sx={{ p:2, m:1, minWidth:25 }}>
+        {/* Switch between themes */}
+        <Stack direction="row" spacing={0.02} sx={{ alignItems: "center"}}>
+          <Typography variant="caption" color="text.primary" sx={{ fontSize: "15px"}}>
+            Light
+          </Typography>
+          <Switch
+            onChange={handleThemeToggle}
+            size="small"
+          />
+          <Typography variant="caption" color="text.primary" sx={{ fontSize: "15px"}}>
+            Dark
+          </Typography>
+        </Stack>
+      </FormControl>
+    </Toolbar>
+    
     <Box
       sx={{
         display: "flex",
@@ -212,133 +312,209 @@ function App() {
         justifyContent: "center",
         bgcolor: "background.default",
         color: "text.primary",
-        borderRadius: 1,
         p: 3
       }}
     > 
-      <Stack spacing={0.15} sx={{alisgnItems: "left"}}>
-        <header>
-            <h1>{"Marathon Training Planner"}</h1>
-        </header>
-        <FormControl sx={{p:2, m:1, minWidth:25 }}>
-            {/* Switch between themes */}
-            <Stack direction="row" spacing={0.02} sx={{ alignItems: "center"}}>
-              <Typography variant="caption" color="text.primary" sx={{ fontSize: "15px"}}>
-                Light
-              </Typography>
-              <Switch
-                onChange={handleThemeToggle}
-                size="small"
-              />
-              <Typography variant="caption" color="text.primary" sx={{ fontSize: "15px"}}>
-                Dark
-              </Typography>
-            </Stack>
-          </FormControl>
-      </Stack>
-
+      <Stack spacing={3} direction="row" sx={{alignItems: "center", justifyContent:"space-evenly"}}>
         {/* Pace-calculator"*/}
-        <Box
-          component="form"
-          sx={{ m:15,
-                p: 2,
-                width: "25ch",
-                border: "1px solid grey",
-                bgcolor: "background.paper",
-                boxShadow: 1,
-                borderRadius: 2
-              }}
+        <AppBar
+          position="relative"
+          color="default"
+          sx={{maxHeight: "610px"}}
         >
-        <Stack spacing={2}>
-          {/* Dropdown to select a race type */}
-          <FormControl sx={{ m:1, minWidth:250 }}>
-            <TextField
-              id="race-distance-select"
-              select
-              label="Select a Race Distance"
-              value={raceDistance}
-              onChange={(e) => setRaceDistance(e.target.value)} // Trigger data fetch on change
+          <Tabs
+            value={value}
+            onChange={handleTabChange}
+            indicatorColor="primary"
+            textColor="primary"
+            variant="fullWidth"
+            centered
             >
-              {
-                distances.map(
-                  (option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                ))
-              }
-            </TextField>
-          </FormControl>
+              <Tab label="Calculator" />
+              <Tab label="Percentage of Pace Workouts" />
+          </Tabs>
+          <TabPanel value={value} index={0}>
+            <Stack spacing={2}>
+              {/* Dropdown to select a race type */}
+              <FormControl sx={{ m:1, minWidth:250 }}>
+                <TextField
+                  id="race-distance-select"
+                  select
+                  label="Select a Race Distance"
+                  value={raceDistance}
+                  onChange={(e) => setRaceDistance(e.target.value)} // Trigger data fetch on change
+                >
+                  {
+                    distances.map(
+                      (option) => (
+                        <MenuItem key={option.value} value={option.value}>
+                          {option.label}
+                        </MenuItem>
+                    ))
+                  }
+                </TextField>
+              </FormControl>
 
-          {/* Input Finish Time */}
-          <FormControl sx={{ m:1, minWidth:250 }}>
-            <TextField
-              id="finish-time-text-field"
-              label="Time (hh:mm:ss)"
-              value={time}
-              onChange={formatTime}
-              inputProps={{
-                maxLength: 8
-              }}
-            >
-            </TextField>
-          </FormControl>
+              {/* Input Finish Time */}
+              <FormControl sx={{ m:1, minWidth:250 }}>
+                <TextField
+                  id="finish-time-text-field"
+                  label="Time (hh:mm:ss)"
+                  value={time}
+                  onChange={formatTime}
+                  inputProps={{
+                    maxLength: 8
+                  }}
+                >
+                </TextField>
+              </FormControl>
 
-          <Stack direction="row" spacing={1} sx={{ alignItems: "center"}}>
-            {/* Input Pace */}
-            <FormControl sx={{ m:1, maxWidth: 170 }}>
-              <TextField
-                id="pace-text-field"
-                label="Pace (mm:ss)"
-                value={pace}
-                onChange={formatPace}
-                inputProps={{
-                  maxLength: 5
-                }}
-              >
-              </TextField>
-            </FormControl>
-            {/* Switch between mi/km */}
-            <Stack direction="row" spacing={0.02} sx={{ alignItems: "center"}}>
-              <Typography variant="caption" color="text.primary" sx={{ fontSize: "15px"}}>
-                km
-              </Typography>
-              <Switch 
-                defaultChecked
-                onChange={switchUnit}
-                size="small"
-              />
-              <Typography variant="caption" color="text.primary" sx={{ fontSize: "15px"}}>
-                mi
-              </Typography>
+              <Stack direction="row" spacing={1} sx={{ alignItems: "center"}}>
+                {/* Input Pace */}
+                <FormControl sx={{ m:1, maxWidth: 170 }}>
+                  <TextField
+                    id="pace-text-field"
+                    label="Pace (mm:ss)"
+                    value={pace}
+                    onChange={formatPace}
+                    inputProps={{
+                      maxLength: 5
+                    }}
+                  >
+                  </TextField>
+                </FormControl>
+                {/* Switch between mi/km */}
+                <Stack direction="row" spacing={0.02} sx={{ alignItems: "center"}}>
+                  <Typography variant="caption" color="text.primary" sx={{ fontSize: "15px"}}>
+                    km
+                  </Typography>
+                  <Switch 
+                    defaultChecked
+                    onChange={switchUnit}
+                    size="small"
+                  />
+                  <Typography variant="caption" color="text.primary" sx={{ fontSize: "15px"}}>
+                    mi
+                  </Typography>
+                </Stack>
+              </Stack>
+              
+              <Stack direction="row" spacing={1} sx={{ alignItems: "center"}}>
+                {/* Button to Trigger GET Request */}
+                <Button variant="contained"
+                  onClick={calculate}
+                  sx={{
+                    fontWeight: "bold"
+                  }}
+                  >🏃 Calculate </Button>
+                {/* Button to Clear User Input */}
+                <Button 
+                  variant="outlined"
+                  onClick={reset}
+                  startIcon={<RestartAltIcon />}
+                  sx={{
+                    fontWeight: "bold"
+                  }}
+                >
+                  Reset
+                </Button>
+              </Stack>
+
+              {/* Error Message */}
+              {error && <p style={{ color: "red" }}>{error}</p>}
+              </Stack>
+          </TabPanel>
+          <TabPanel value={value} index={1}>
+            <Stack spacing={2}>
+              {/* Dropdown to select a race type */}
+              <FormControl sx={{ m:1, minWidth:250 }}>
+                <TextField
+                  id="race-distance-select"
+                  select
+                  label="Select a Race Distance"
+                  value={raceDistance}
+                  onChange={(e) => setRaceDistance(e.target.value)} // Trigger data fetch on change
+                >
+                  {
+                    distances.map(
+                      (option) => (
+                        <MenuItem key={option.value} value={option.value}>
+                          {option.label}
+                        </MenuItem>
+                    ))
+                  }
+                </TextField>
+              </FormControl>
+
+              <Stack direction="row" spacing={1} sx={{ alignItems: "center"}}>
+                {/* Input Pace */}
+                <FormControl sx={{ m:1, maxWidth: 170 }}>
+                  <TextField
+                    id="pace-text-field"
+                    label="Pace (mm:ss)"
+                    value={pace}
+                    onChange={formatPace}
+                    inputProps={{
+                      maxLength: 5
+                    }}
+                  >
+                  </TextField>
+                </FormControl>
+              </Stack>
+              
+              <Stack direction="row" spacing={1} sx={{ alignItems: "center"}}>
+                {/* Button to Trigger GET Request */}
+                <Button variant="contained"
+                  onClick={fetchPacePercentages}
+                  sx={{
+                    fontWeight: "bold"
+                  }}
+                  >🏃 Calculate </Button>
+                {/* Button to Clear User Input */}
+                <Button 
+                  variant="outlined"
+                  onClick={reset}
+                  startIcon={<RestartAltIcon />}
+                  sx={{
+                    fontWeight: "bold"
+                  }}
+                >
+                  Reset
+                </Button>
+              </Stack>
+              {/* Error Message */}
+              {error && <p style={{ color: "red" }}>{error}</p>}
+              {/* Workout Paces*/}
+              <TableContainer component={Paper}>
+                <Table sx={{ maxWidth:650 }} size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell align="left">Percentage of Pace</TableCell>
+                      <TableCell align="left">Designation</TableCell>
+                      <TableCell align="left">Pace Range</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {workoutPaces.map((row) => (
+                      <TableRow
+                        key={row["Percentage of Pace"]}
+                        sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                      >
+                        <TableCell align="left">
+                          {`${row["Percentage of Pace"]}%`}
+                        </TableCell>
+                        <TableCell align="left">{row["Designation"]}</TableCell>
+                        <TableCell align="left">{row["Pace"]}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
             </Stack>
-          </Stack>
-          
-          <Stack direction="row" spacing={1} sx={{ alignItems: "center"}}>
-            {/* Button to Trigger GET Request */}
-            <Button variant="contained"
-              onClick={calculate}
-              sx={{
-                fontWeight: "bold"
-              }}
-              >🏃 Calculate </Button>
-            {/* Button to Clear User Input */}
-            <Button 
-              variant="outlined"
-              onClick={reset}
-              startIcon={<RestartAltIcon />}
-              sx={{
-                fontWeight: "bold"
-              }}
-            >
-              Reset
-            </Button>
-          </Stack>
-
-          {/* Error Message */}
-          {error && <p style={{ color: "red" }}>{error}</p>}
-          </Stack>
-          </Box>
+          </TabPanel>
+        </AppBar>
+        
+        </Stack>
     </Box>
     </ThemeProvider>
   );
