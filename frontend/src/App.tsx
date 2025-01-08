@@ -13,6 +13,7 @@ import Typography from '@mui/material/Typography';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import AppBar from '@mui/material/AppBar';
+import Toolbar from "@mui/material/Toolbar";
 import { createTheme, ThemeProvider, PaletteMode, InputAdornment} from '@mui/material';
 import { Percent, RowingTwoTone } from "@mui/icons-material";
 import Table from '@mui/material/Table';
@@ -278,6 +279,25 @@ function App() {
 
   return (
     <ThemeProvider theme={theme}>
+    <Toolbar sx={{ bgcolor:"background.default"}}>
+      <Typography variant="h6" color="text.primary">Marathon Training Planner</Typography>
+      <FormControl sx={{ p:2, m:1, minWidth:25 }}>
+        {/* Switch between themes */}
+        <Stack direction="row" spacing={0.02} sx={{ alignItems: "center"}}>
+          <Typography variant="caption" color="text.primary" sx={{ fontSize: "15px"}}>
+            Light
+          </Typography>
+          <Switch
+            onChange={handleThemeToggle}
+            size="small"
+          />
+          <Typography variant="caption" color="text.primary" sx={{ fontSize: "15px"}}>
+            Dark
+          </Typography>
+        </Stack>
+      </FormControl>
+    </Toolbar>
+    
     <Box
       sx={{
         display: "flex",
@@ -286,31 +306,10 @@ function App() {
         justifyContent: "center",
         bgcolor: "background.default",
         color: "text.primary",
-        borderRadius: 1,
         p: 3
       }}
     > 
       <Stack spacing={5} sx={{alignItems: "center", justifyContent:"space-evenly"}}>
-        <Stack direction="row" spacing={2} sx={{alignItems: "center", justifyContent:"space-around"}}>
-          <header>
-              <h1>{"Marathon Training Planner"}</h1>
-          </header>
-          <FormControl sx={{ p:2, m:1, minWidth:25 }}>
-              {/* Switch between themes */}
-              <Stack direction="row" spacing={0.02} sx={{ alignItems: "center"}}>
-                <Typography variant="caption" color="text.primary" sx={{ fontSize: "15px"}}>
-                  Light
-                </Typography>
-                <Switch
-                  onChange={handleThemeToggle}
-                  size="small"
-                />
-                <Typography variant="caption" color="text.primary" sx={{ fontSize: "15px"}}>
-                  Dark
-                </Typography>
-              </Stack>
-            </FormControl>
-        </Stack>
         {/* Pace-calculator"*/}
         <AppBar
           position="relative"
