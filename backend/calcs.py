@@ -1,6 +1,4 @@
-from .models import Pace
-from sys import argv
-from typing import Literal, Annotated
+from typing import Literal
 
 
 KM_DISTANCES = {
