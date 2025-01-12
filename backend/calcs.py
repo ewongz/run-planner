@@ -1,5 +1,5 @@
 from typing import Literal
-
+from .models import WorkoutBlock
 
 KM_DISTANCES = {
     '5K': 5,
@@ -107,3 +107,13 @@ def heart_rate_zones(max_heart_rate: int) -> list:
     return zones
 
 
+def interval_workout_builder(pace):
+    workout = []
+    pace_seconds = parse_hhmmss_into_seconds(pace)
+    warm_up = percentage_of_pace(pace_seconds, 0.75)
+    h, m, s = get_hms(warm_up)
+    warm_up_pace = f"{m}:{s:02}"
+    warm_up = WorkoutBlock(pace=warm_up_pace, distance=5)
+    training = WorkoutBlock(pace, distance=2)
+
+    return workout

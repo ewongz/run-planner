@@ -1,25 +1,23 @@
 from pydantic import BaseModel, model_validator
-from typing import Literal, List
+from typing import Literal, Optional
 
 
 class WorkoutBlock(BaseModel):
-    phase: Literal["warm_up", "training", "rest", "cool_down"]
-    variable: Literal["distance", "time"]
-    target: Literal["pace", "heart_rate"]
-    pace: str | None
-    heart_rate: int | None
-    distance: int | None
-    time: int | None
-    category: Literal["endurance", "speed", "recovery"]
-    # @model_validator(mode="after")
-    # def field_should_be_specified(cls, value):
-    #     target = value["target"]
-    #     pace = value["pace"]
-    #     heart_rate = value["heart_rate"]
-    #     if target == "pace" and not pace:
-    #         raise ValueError("pace must be specified if target is pace")
-    #     elif target == "heart_rate" and not heart_rate:
-    #         raise ValueError("heart_rate must be specified if target is heart_rate")
+    pace: Optional[str] = None
+    heart_rate: Optional[int] = None
+    distance: Optional[int] = None
+    time: Optional[int] = None
+    @model_validator(mode="after")
+    def specify_params(cls, values):
+        assert (values.pace) or (values.heart_rate), "specify either pace or heart rate targets"
+        assert (values.distance) or (values.time), "specify either distance or time"
+        return values
+        
+class IntervalBlocks(BaseModel):
+    WorkoutBlocks: list[WorkoutBlock] = []
+    repeat: int = 1
+
+    
 
 workout_paces =[
     {
