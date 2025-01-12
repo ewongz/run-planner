@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Query
 from . import calcs
-from .models import workout_paces
+from .models import workout_paces, WorkoutBlock
 from typing import Literal, Annotated
+import uuid
 router = APIRouter()
 
 @router.get("/race_pace")
@@ -85,7 +86,17 @@ def pace_workouts(pace: Annotated[str | None, Query(pattern="^[^:]*(:[^:]*:?[^:]
         paces.append(p)
     return {"workout_paces": paces}
 
-@router.get("/")
-def read_root():
-    return {"text": "Marathon Training Planner"}
-
+@router.post("/build_workout")
+def build_workout(workout_block: WorkoutBlock):
+    pace = workout_block.pace
+    time = workout_block.time
+    distance = workout_block.distance
+    if time:
+        h, m, s = calcs.get_hms(time)
+        estimated_time = f"{h}:{m:02}:{s:02}"
+    elif pace:
+        pace_time_seconds = calcs.parse_hhmmss_into_seconds(pace)
+        estimated_time_seconds = distance * pace_time_seconds
+        h, m, s = calcs.get_hms(estimated_time_seconds)
+        estimated_time = f"{h}:{m:02}:{s:02}"
+    return {"estimated_time": estimated_time}

@@ -1,15 +1,25 @@
-from pydantic import BaseModel
-from typing import Literal
+from pydantic import BaseModel, model_validator
+from typing import Literal, Optional
 
-class Pace(BaseModel):
-    time: str = "5:00"
-    unit: Literal["mi", "km"]
 
-class Workout(BaseModel):
-    pace: Pace
-    distance: int
+class WorkoutBlock(BaseModel):
+    pace: Optional[str] = None
+    heart_rate: Optional[int] = None
+    distance: Optional[int] = None
+    time: Optional[int] = None
+    @model_validator(mode="after")
+    def specify_params(cls, values):
+        assert (values.pace) or (values.heart_rate), "specify either pace or heart rate targets"
+        assert (values.distance) or (values.time), "specify either distance or time"
+        return values
+        
+class IntervalBlocks(BaseModel):
+    WorkoutBlocks: list[WorkoutBlock] = []
+    repeat: int = 1
 
-workout_paces = [
+    
+
+workout_paces =[
     {
         "Percentage of Pace": 80,
         "Designation": "Basic Endurance"
