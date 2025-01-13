@@ -1,5 +1,5 @@
 from typing import Literal
-from .models import WorkoutBlock
+from datetime import timedelta, datetime, date
 
 KM_DISTANCES = {
     '5K': 5,
@@ -8,71 +8,69 @@ KM_DISTANCES = {
     'Marathon': 42.195
 }
 
-def get_hms(seconds: int) -> int:
+def format_time_delta(td: timedelta) -> str:
+    seconds = int(td.total_seconds())
     hours = seconds // 3600
     minutes = (seconds % 3600) // 60
     seconds = seconds % 60
-    return hours, minutes, seconds
+    if hours > 0:
+        return f"{hours}:{minutes:02}:{seconds:02}"
+    return f"{minutes}:{seconds:02}"
 
-def parse_hhmmss_into_seconds(time_str:str) -> int:
-    parsed = time_str.split(":")
-    if len(parsed) > 2:
-        hours = int(parsed[0])
-        minutes = int(parsed[1])
-        seconds = int(parsed[2])
-    else:
-        hours = 0
-        minutes = int(parsed[0])
-        seconds = int(parsed[1])
-    total_seconds = hours * 3600 + minutes * 60 + seconds
-    return total_seconds
+def parse_str_time(str_time: str) -> timedelta:
+    for f in ["%H:%M:%S", "%M:%S"]:
+        try:
+            dt = datetime.strptime(str_time, f)
+            td = datetime.combine(date.min, dt.time()) - datetime.min
+            return td
+        except ValueError:
+            continue
+    raise ValueError
 
-def convert_units(distance: float, unit: Literal["km", "mi"]) -> float:
-    if unit == 'km':
-        return distance * 1.609
-    elif unit == 'mi':
-        return distance * 0.621
+def convert_to_mi(distance: float) -> float:
+    return distance * 0.621
 
-def percentage_of_speed(pace_time_seconds: int, percentage: float) -> int:
+def convert_to_km(distance: float) -> float:
+    return distance * 1.609
+
+def percentage_of_speed(pace_time: timedelta, percentage: float) -> timedelta:
     # https://runningwritings.com/2013/02/brief-thoughts-calculating-percentages.html
     # "a linear change in speed(in m/s) for each incremental change in percent"
+    pace_time_seconds = pace_time.total_seconds()
     updated_pace_seconds = int(round(pace_time_seconds / percentage, 0))
-    return updated_pace_seconds
+    return timedelta(seconds=updated_pace_seconds)
 
-def percentage_of_pace(pace_time_seconds: int, percentage: float) -> int:
+def percentage_of_pace(pace_time: timedelta, percentage: float) -> timedelta:
     # https://runningwritings.com/2013/02/brief-thoughts-calculating-percentages.html
     # "for every incremental change in the percentage, the running pace, in minutes per mile,
     #  changes by a consistent amount"
+    pace_time_seconds = pace_time.total_seconds()
     updated_pace_seconds = int(round((pace_time_seconds * (1 + (1-percentage))), 0))
-    return updated_pace_seconds
+    return timedelta(seconds=updated_pace_seconds)
 
-def get_pace(seconds: int,
-             distance: int) -> int:
-    pace = int(round(seconds / distance, 0))
-    return pace
+def get_pace(time: timedelta,
+             distance: int) -> timedelta:
+    return time / distance
 
-def get_time(pace_time_seconds: int,
-             distance: int) -> int:
-    total_time_seconds = int(round(pace_time_seconds * distance, 0))
-    return total_time_seconds
+def get_time(pace: timedelta,
+             distance: int) -> timedelta:
+    return pace * distance
 
 def pfitz_long_run_pace(distance: int,
                         unit: str,
-                        marathon_pace_seconds: int) -> list:
+                        marathon_pace: timedelta) -> list:
     # linear increase from 20% to 10% slower than goal marathon pace
     # calculating percentage of pace
-    lower_bound = percentage_of_pace(marathon_pace_seconds, 0.8)
-    upper_bound = percentage_of_pace(marathon_pace_seconds, 0.9)
+    lower_bound = percentage_of_pace(marathon_pace, 0.8).total_seconds()
+    upper_bound = percentage_of_pace(marathon_pace, 0.9).total_seconds()
     step_size = (lower_bound - upper_bound) // distance
     paces = []
     for i in range(1, distance + 1):
         lower_bound -= step_size
         lower_target = lower_bound - 2
         upper_target = lower_bound + 2
-        hour, minute, second = get_hms(lower_target)
-        lower_target_pace = f"{minute}:{second:02}"
-        hour, minute, second = get_hms(upper_target)
-        upper_target_pace = f"{minute}:{second:02}"
+        lower_target_pace = format_time_delta(timedelta(seconds=lower_target))
+        upper_target_pace = format_time_delta(timedelta(seconds=upper_target))
         paces.append(
             {
                 f"{unit}": i,
@@ -105,15 +103,3 @@ def heart_rate_zones(max_heart_rate: int) -> list:
             int(round(max_heart_rate * hr_calc[1], 0))
         )
     return zones
-
-
-def interval_workout_builder(pace):
-    workout = []
-    pace_seconds = parse_hhmmss_into_seconds(pace)
-    warm_up = percentage_of_pace(pace_seconds, 0.75)
-    h, m, s = get_hms(warm_up)
-    warm_up_pace = f"{m}:{s:02}"
-    warm_up = WorkoutBlock(pace=warm_up_pace, distance=5)
-    training = WorkoutBlock(pace, distance=2)
-
-    return workout
