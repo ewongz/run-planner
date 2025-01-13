@@ -442,7 +442,7 @@ function App() {
                     <TableRow>
                       <TableCell align="left">Percentage of Pace</TableCell>
                       <TableCell align="left">Designation</TableCell>
-                      <TableCell align="left">Pace Range</TableCell>
+                      <TableCell align="left">Pace</TableCell>
                     </TableRow>
                   </TableHead>)}
                   <TableBody>

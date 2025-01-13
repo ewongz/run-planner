@@ -34,7 +34,7 @@ workout_paces =[
     },
     {
         "Percentage of Pace": 95,
-        "Designation": "Race-supportive Endurance"
+        "Designation": "Race-specific Endurance"
     },
     {
         "Percentage of Pace": 100,
