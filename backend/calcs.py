@@ -2,11 +2,13 @@ from typing import Literal
 from datetime import timedelta, datetime, date
 import math
 
-KM_DISTANCES = {
-    '5K': 5,
-    '10K': 10,
-    'Half Marathon': 21.0975,
-    'Marathon': 42.195
+DISTANCES = {
+    '800M': 800,
+    '1600M': 1600,
+    '5K': 5000,
+    '10K': 10000,
+    'Half Marathon': 21097.5,
+    'Marathon': 42195
 }
 
 def format_time_delta(td: timedelta) -> str:
@@ -50,14 +52,14 @@ def percentage_of_pace(pace_time: timedelta, percentage: float) -> timedelta:
     return timedelta(seconds=updated_pace_seconds)
 
 def get_pace(time: timedelta,
-             distance: int) -> timedelta:
+             distance: float) -> timedelta:
     return time / distance
 
 def get_time(pace: timedelta,
-             distance: int) -> timedelta:
+             distance: float) -> timedelta:
     return pace * distance
 
-def pfitz_long_run_pace(distance: int,
+def pfitz_long_run_pace(distance: float,
                         unit: str,
                         marathon_pace: timedelta) -> list:
     # linear increase from 20% to 10% slower than goal marathon pace
