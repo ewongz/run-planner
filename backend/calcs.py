@@ -114,3 +114,28 @@ def get_vdot(distance_in_meters:int, time:timedelta) -> float:
     pct = 0.8 + 0.1894393 * math.exp(-0.012778 * t) + 0.2989558 * math.exp(-0.1932605 * t)
     vdot = round(vo2 / pct, 1)
     return vdot
+
+def get_training_paces(vdot: float) -> dict:
+# credit here for doing the legwork of researching how different sources derive the
+# training paces as % of vdot 
+# https://github.com/tlgs/vdot/blob/master/notebooks/2-analysis.ipynb
+    training_pace_pcts = {
+        "Easy (lower)": 0.6304,
+        "Easy (upper)": 0.7346,
+        "Marathon": 0.8251,
+        "Threshold": 0.8799,
+        "Interval": 0.9743,
+        "Repetitions": 1.089
+    }
+    training_paces = {}
+    for name, pct in training_pace_pcts.items():
+        v = get_vdot_pace(vdot, pct)  # meters/min
+        pace = 1000 / v # min/km
+        formatted_pace = format_time_delta(timedelta(minutes=pace))
+        training_paces[name] = formatted_pace
+    return training_paces
+
+def get_vdot_pace(vdot: float, percentage:float) -> float:
+    return (
+            -0.182258 + math.sqrt(0.033218 - 0.000416 * (-4.6 - (vdot * percentage)))
+        ) / 0.000208

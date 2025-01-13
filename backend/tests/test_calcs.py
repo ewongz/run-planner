@@ -25,3 +25,11 @@ def test_pfitz_long_run_pace():
     paces = calcs.pfitz_long_run_pace(15,"mi", timedelta(seconds=360))
     assert paces[0]['mi'] == 1
     assert paces[0]['Target Pace'] == '7:08 to 7:12'
+
+def test_get_vdot():
+    vdot = calcs.get_vdot(5000, timedelta(minutes=18, seconds=30))
+    assert vdot == 54.6
+
+def test_training_paces():
+    paces = calcs.get_training_paces(54.6)
+    assert paces["Easy (lower)"] == "5:11"
