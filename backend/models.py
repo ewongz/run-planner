@@ -53,3 +53,13 @@ workout_paces =[
         "Designation": "General Speed"
     }
 ]
+
+# credit here for doing the legwork of researching how different sources derive the
+# training paces as % of vdot 
+# https://github.com/tlgs/vdot/blob/master/notebooks/2-analysis.ipynb
+training_paces = {"Easy (lower)": 0.6304,
+"Easy (upper)": 0.7346,
+"Marathon": 0.8251,
+"Threshold": 0.8799,
+"Interval": 0.9743,
+"Repetitions": 1.089}

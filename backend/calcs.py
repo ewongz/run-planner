@@ -1,5 +1,6 @@
 from typing import Literal
 from datetime import timedelta, datetime, date
+import math
 
 KM_DISTANCES = {
     '5K': 5,
@@ -103,3 +104,13 @@ def heart_rate_zones(max_heart_rate: int) -> list:
             int(round(max_heart_rate * hr_calc[1], 0))
         )
     return zones
+
+# https://github.com/tlgs/vdot/blob/master/notebooks/1-basics.ipynb
+def get_vdot(distance_in_meters:int, time:timedelta) -> float:
+    d = distance_in_meters
+    t = time.total_seconds() / 60 # minutes
+    v = d / t
+    vo2 = -4.6 + 0.182258 * v + 0.000104 * v**2
+    pct = 0.8 + 0.1894393 * math.exp(-0.012778 * t) + 0.2989558 * math.exp(-0.1932605 * t)
+    vdot = round(vo2 / pct, 1)
+    return vdot
