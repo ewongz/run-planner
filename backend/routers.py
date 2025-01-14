@@ -80,6 +80,25 @@ def convert_pace(pace: Annotated[str | None, Query(pattern="^[^:]*(:[^:]*:?[^:]*
     formatted_pace = calcs.format_time_delta(converted_pace)
     return {"pace": formatted_pace}
 
+@router.get("/vdot")
+def vdot(distance: Annotated[float, "race distance in meters"] = 5000,
+         time: Annotated[str | None, Query(pattern="^[^:]*(:[^:]*:?[^:]*|[^:]*:)$")] = "20:00"):
+    time = calcs.parse_str_time(time)
+    vdot = calcs.get_vdot(distance, time)
+    return {"vdot": vdot}
+
+@router.get("/vdot_paces")
+def vdot_paces(vdot: float,
+               unit: Annotated[Literal["mi", "km"], "pace units in km or mi"] = "mi"):
+    training_paces = calcs.get_training_paces(vdot)
+    if unit == "mi":
+        for name, pace in training_paces.items():
+            parsed = calcs.parse_str_time(pace)
+            converted_pace = calcs.convert_to_mi_pace(parsed)
+            formatted_pace = calcs.format_time_delta(converted_pace)
+            training_paces[name] = formatted_pace
+    return {"training_paces": training_paces}
+
 @router.post("/build_workout")
 def build_workout(workout_block: WorkoutBlock):
     pace = workout_block.pace
