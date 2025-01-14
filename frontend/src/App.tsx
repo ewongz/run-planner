@@ -139,7 +139,7 @@ function App() {
   const [lastUpdated, setLastUpdated] = useState<string>("");
   const [pace, setPace] = useState<string>("");
   const [time, setTime] = useState<string>("");
-  const [isMiles, setIsMiles] = useState<boolean>(true);
+  const [isMiles, setIsMiles] = useState<boolean>(false);
   const [raceDistance, setRaceDistance] = useState<string>("Marathon");
   const [error, setError] = useState<string>("");
   const [mode, setMode] = useState<PaletteMode>("light"); // 'light' or 'dark'
@@ -182,7 +182,8 @@ function App() {
   const fetchPace = () => {
     setError(""); // Clear previous errors
     const encodedTime = encodeURIComponent(time)
-    const encodedDistance = encodeURIComponent(raceDistance)
+    const mappedDistance = distanceMapping[raceDistance as keyof typeof distanceMapping]
+    const encodedDistance = encodeURIComponent(mappedDistance)
     let unit;
     if (isMiles) {
       unit = "mi";
@@ -207,7 +208,8 @@ function App() {
   const fetchTime = () => {
     setError(""); // Clear previous errors
     const encodedPace = encodeURIComponent(pace)
-    const encodedDistance = encodeURIComponent(raceDistance)
+    const mappedDistance = distanceMapping[raceDistance as keyof typeof distanceMapping]
+    const encodedDistance = encodeURIComponent(mappedDistance)
     let unit;
     if (isMiles) {
       unit = "mi";
@@ -260,6 +262,27 @@ function App() {
 
   const switchUnit = () => {
     setIsMiles((prevState) => !prevState)
+    let unit;
+    if (isMiles) {
+      unit = "km";
+    } else {
+      unit = "mi";
+    }
+    if (pace) {
+      const encodedPace = encodeURIComponent(pace)
+      axios.get(`http://127.0.0.1:8000/convert_pace?pace=${encodedPace}&target_unit=${unit}`)
+      .then(
+        response => {
+          const paceData = `${response.data.pace}`
+          setPace(paceData);
+          fetchPacePercentages(paceData);
+        }
+      )
+      .catch(err => {
+        console.error("Error fetching data:", err);
+        setError("Failed to switch units")
+      });
+    }
   };
 
   const distances = [
@@ -280,6 +303,15 @@ function App() {
       label: 'Marathon'
     }
   ]
+
+  const distanceMapping = {
+    '800M': 800,
+    '1600M': 1600,
+    '5K': 5000,
+    '10K': 10000,
+    'Half Marathon': 21097.5,
+    'Marathon': 42195
+  }
 
   return (
     <ThemeProvider theme={theme}>
@@ -398,7 +430,7 @@ function App() {
                 {/* Switch between mi/km */}
                 <Stack direction="row" spacing={0.02} sx={{ alignItems: "center"}}>
                   <Typography variant="caption" color="text.primary" sx={{ fontSize: "15px"}}>
-                    km
+                    mi
                   </Typography>
                   <Switch 
                     defaultChecked
@@ -406,7 +438,7 @@ function App() {
                     size="small"
                   />
                   <Typography variant="caption" color="text.primary" sx={{ fontSize: "15px"}}>
-                    mi
+                    km
                   </Typography>
                 </Stack>
               </Stack>

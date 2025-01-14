@@ -7,23 +7,28 @@ router = APIRouter()
 
 @router.get("/race_pace")
 def race_pace(finish_time: Annotated[str | None, Query(pattern="^[^:]*(:[^:]*:?[^:]*|[^:]*:)$")] = "20:00",
-              distance: Annotated[int, "race distance in meters"] = 5000):
+              unit: Annotated[Literal["mi", "km"], "pace units in km or mi"] = "mi",
+              distance: Annotated[float, "race distance in meters"] = 5000):
     parsed_time = calcs.parse_str_time(finish_time)
     pace = calcs.get_pace(parsed_time, distance / 1000) # seconds/km
+    if unit == "mi":
+        pace = calcs.convert_to_mi_pace(pace)
     formatted_pace =  calcs.format_time_delta(pace) # mm:ss/km
     return {"pace": formatted_pace}
 
 @router.get("/race_time")
 def race_time(pace: Annotated[str | None, Query(pattern="^[^:]*(:[^:]*:?[^:]*|[^:]*:)$")] = "6:30",
               unit: Annotated[Literal["mi", "km"], "pace units in km or mi"] = "mi",
-              distance: Annotated[int, "race distance in meters"] = 5000):
-    pace_time = calcs.parse_str_time(pace)
-    total_time = calcs.get_time(pace_time, distance / 1000)
+              distance: Annotated[float, "race distance in meters"] = 5000):
+    parsed_time = calcs.parse_str_time(pace)
+    if unit == "mi":
+        distance = distance * 0.621
+    total_time = calcs.get_time(parsed_time, distance / 1000)
     formatted_time = calcs.format_time_delta(total_time)
     return {"time": formatted_time}
 
 @router.get("/pfitz_long_run_pace")
-def pfitz_long_run_pace(distance: Annotated[int, "distance of long run"] = 15,
+def pfitz_long_run_pace(distance: Annotated[float, "distance of long run"] = 15,
                         marathon_pace: Annotated[str | None, Query(pattern="^[^:]*(:[^:]*:?[^:]*|[^:]*:)$")] = "6:30",
                         unit: Annotated[Literal["mi", "km"], "pace units in km or mi"] = "mi"):
     m_pace = calcs.parse_str_time(marathon_pace)
@@ -63,6 +68,17 @@ def pace_workouts(pace: Annotated[str | None, Query(pattern="^[^:]*(:[^:]*:?[^:]
         p["Pace"] = formatted_pace
         paces.append(p)
     return {"workout_paces": paces}
+
+@router.get("/convert_pace")
+def convert_pace(pace: Annotated[str | None, Query(pattern="^[^:]*(:[^:]*:?[^:]*|[^:]*:)$")] = "6:00",
+                 target_unit: Annotated[Literal["mi", "km"], "pace units in km or mi"] = "mi"):
+    parsed_pace = calcs.parse_str_time(pace)
+    if target_unit == "mi":
+        converted_pace = calcs.convert_to_mi_pace(parsed_pace)
+    else:
+        converted_pace = calcs.convert_to_km_pace(parsed_pace)
+    formatted_pace = calcs.format_time_delta(converted_pace)
+    return {"pace": formatted_pace}
 
 @router.post("/build_workout")
 def build_workout(workout_block: WorkoutBlock):

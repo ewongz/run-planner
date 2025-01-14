@@ -30,11 +30,11 @@ def parse_str_time(str_time: str) -> timedelta:
             continue
     raise ValueError
 
-def convert_to_mi(distance: float) -> float:
-    return distance * 0.621
+def convert_to_mi_pace(pace: timedelta) -> timedelta:
+    return pace / 0.621
 
-def convert_to_km(distance: float) -> float:
-    return distance * 1.609
+def convert_to_km_pace(pace: timedelta) -> timedelta:
+    return pace / 1.609
 
 def percentage_of_speed(pace_time: timedelta, percentage: float) -> timedelta:
     # https://runningwritings.com/2013/02/brief-thoughts-calculating-percentages.html
