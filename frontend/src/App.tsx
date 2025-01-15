@@ -139,13 +139,14 @@ function App() {
   const [lastUpdated, setLastUpdated] = useState<string>("");
   const [pace, setPace] = useState<string>("");
   const [time, setTime] = useState<string>("");
-  const [isMiles, setIsMiles] = useState<boolean>(true);
+  const [isMiles, setIsMiles] = useState<boolean>(false);
   const [raceDistance, setRaceDistance] = useState<string>("Marathon");
   const [error, setError] = useState<string>("");
   const [mode, setMode] = useState<PaletteMode>("light"); // 'light' or 'dark'
   const [value, setValue] = React.useState(0);
   const [percentage, setPercentage] = useState<string>("90");
   const [workoutPaces, setWorkoutPaces] = useState<[]>([]);
+  const [vdot, setVdot] = useState<string>("");
 
   const handleTabChange = (event: React.ChangeEvent<{}>, newValue: number) => {
     setValue(newValue);
@@ -164,6 +165,7 @@ function App() {
     setPace("");
     setLastUpdated("");
     setWorkoutPaces([]);
+    setVdot("");
   };
 
   const calculate = () => {
@@ -182,7 +184,8 @@ function App() {
   const fetchPace = () => {
     setError(""); // Clear previous errors
     const encodedTime = encodeURIComponent(time)
-    const encodedDistance = encodeURIComponent(raceDistance)
+    const mappedDistance = distanceMapping[raceDistance as keyof typeof distanceMapping]
+    const encodedDistance = encodeURIComponent(mappedDistance)
     let unit;
     if (isMiles) {
       unit = "mi";
@@ -195,6 +198,7 @@ function App() {
         const paceData = `${response.data.pace}`
         setPace(paceData); 
         fetchPacePercentages(paceData);
+        fetchVdot(time);
       }
     )
     .catch(err => {
@@ -207,7 +211,8 @@ function App() {
   const fetchTime = () => {
     setError(""); // Clear previous errors
     const encodedPace = encodeURIComponent(pace)
-    const encodedDistance = encodeURIComponent(raceDistance)
+    const mappedDistance = distanceMapping[raceDistance as keyof typeof distanceMapping]
+    const encodedDistance = encodeURIComponent(mappedDistance)
     let unit;
     if (isMiles) {
       unit = "mi";
@@ -220,6 +225,7 @@ function App() {
         const timeData = `${response.data.time}`
         setTime(timeData);
         fetchPacePercentages(pace);
+        fetchVdot(timeData);
       }
     )
     .catch(err => {
@@ -227,6 +233,23 @@ function App() {
       setError("Failed to fetch time")
     });
   }
+
+  const fetchVdot = (time: string) => {
+    setError(""); // Clear previous errors
+    const encodedTime = encodeURIComponent(time)
+    const mappedDistance = distanceMapping[raceDistance as keyof typeof distanceMapping]
+    const encodedDistance = encodeURIComponent(mappedDistance)
+    axios.get(`http://127.0.0.1:8000/vdot?distance=${encodedDistance}&time=${encodedTime}`)
+    .then(
+      response => {
+        setVdot(`VDOT: ${response.data.vdot}`);
+      }
+    )
+    .catch(err => {
+      console.error("Error fetching data:", err);
+      setError("Failed to fetch pace.")
+    });
+  };
 
   // Calculate Pace Percentages
   const fetchPacePercentages = (pace: string) => {
@@ -260,9 +283,38 @@ function App() {
 
   const switchUnit = () => {
     setIsMiles((prevState) => !prevState)
+    let unit;
+    if (isMiles) {
+      unit = "km";
+    } else {
+      unit = "mi";
+    }
+    if (pace) {
+      const encodedPace = encodeURIComponent(pace)
+      axios.get(`http://127.0.0.1:8000/convert_pace?pace=${encodedPace}&target_unit=${unit}`)
+      .then(
+        response => {
+          const paceData = `${response.data.pace}`
+          setPace(paceData);
+          fetchPacePercentages(paceData);
+        }
+      )
+      .catch(err => {
+        console.error("Error fetching data:", err);
+        setError("Failed to switch units")
+      });
+    }
   };
 
   const distances = [
+    {
+      value: '800M',
+      label: '800M'
+    },
+    {
+      value: '1600M',
+      label: '1600M'
+    },
     {
       value: '5K',
       label: '5K'
@@ -280,6 +332,15 @@ function App() {
       label: 'Marathon'
     }
   ]
+
+  const distanceMapping = {
+    '800M': 800,
+    '1600M': 1600,
+    '5K': 5000,
+    '10K': 10000,
+    'Half Marathon': 21097.5,
+    'Marathon': 42195
+  }
 
   return (
     <ThemeProvider theme={theme}>
@@ -398,7 +459,7 @@ function App() {
                 {/* Switch between mi/km */}
                 <Stack direction="row" spacing={0.02} sx={{ alignItems: "center"}}>
                   <Typography variant="caption" color="text.primary" sx={{ fontSize: "15px"}}>
-                    km
+                    mi
                   </Typography>
                   <Switch 
                     defaultChecked
@@ -406,7 +467,7 @@ function App() {
                     size="small"
                   />
                   <Typography variant="caption" color="text.primary" sx={{ fontSize: "15px"}}>
-                    mi
+                    km
                   </Typography>
                 </Stack>
               </Stack>
@@ -434,6 +495,21 @@ function App() {
 
               {/* Error Message */}
               {error && <p style={{ color: "red" }}>{error}</p>}
+              {/* VDOT */}
+              <Typography
+                component="a"
+                href="https://support.vdoto2.com/v-o2-faq/"
+                target="_blank"
+                rel="noopener noreferrer"
+                color="primary"
+                variant="h6"
+                sx={{ textDecoration: 'none',
+                      '&:hover': { textDecoration: 'underline' },
+                    }}
+              >
+                {`${vdot}`}
+              </Typography>
+
               </Stack>
               {/* Workout Paces*/}
               <TableContainer component={Paper}>
