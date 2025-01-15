@@ -25,6 +25,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import { Global } from "@emotion/react";
+import { handleTimeInput } from "./utils/inputValidation";
 
 const getTheme = (mode: PaletteMode) =>
   createTheme({
@@ -112,27 +113,6 @@ export function TabPanel(props: TabPanelProps) {
       )}
     </div>
   );
-}
-
-// Function to handle input change for time
-export function handleChange(e: { target: { value: string; }; }) {
-  let value = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric characters except :
-  // Add colon at appropriate positions
-  if (value.length > 2 && value.length <= 3) {
-    value = value.slice(0, 1) + ":" + value.slice(1, 3);
-  } else if (value.length > 3 && value.length <= 4) {
-    value = value.slice(0, 2) + ":" + value.slice(2);
-  } else if (value.length > 4 && value.length <= 5) {
-    value = value.slice(0, 1) + ":" + value.slice(1, 3) + ":" + value.slice(3, 5);
-  } else if (value.length > 5) {
-    value = value.slice(0, 2) + ":" + value.slice(2, 4) + ":" + value.slice(4, 8);
-  }
-  return value;
-}
-
-export function handlePercentageInput(e: { target: { value: string; }; }) {
-  let value = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric characters except :
-  return value;
 }
 
 function App() {
@@ -268,17 +248,13 @@ function App() {
   };
 
   const formatTime = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTime(handleChange(e))
+    setTime(handleTimeInput(e))
     setLastUpdated("time")
   }
 
   const formatPace = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPace(handleChange(e))
+    setPace(handleTimeInput(e))
     setLastUpdated("pace")
-  }
-
-  const formatPercentage = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPercentage(handlePercentageInput(e))
   }
 
   const switchUnit = () => {
