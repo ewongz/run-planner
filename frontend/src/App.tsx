@@ -146,6 +146,7 @@ function App() {
   const [value, setValue] = React.useState(0);
   const [percentage, setPercentage] = useState<string>("90");
   const [workoutPaces, setWorkoutPaces] = useState<[]>([]);
+  const [vdot, setVdot] = useState<string>("");
 
   const handleTabChange = (event: React.ChangeEvent<{}>, newValue: number) => {
     setValue(newValue);
@@ -164,6 +165,7 @@ function App() {
     setPace("");
     setLastUpdated("");
     setWorkoutPaces([]);
+    setVdot("");
   };
 
   const calculate = () => {
@@ -196,6 +198,7 @@ function App() {
         const paceData = `${response.data.pace}`
         setPace(paceData); 
         fetchPacePercentages(paceData);
+        fetchVdot(time);
       }
     )
     .catch(err => {
@@ -222,6 +225,7 @@ function App() {
         const timeData = `${response.data.time}`
         setTime(timeData);
         fetchPacePercentages(pace);
+        fetchVdot(timeData);
       }
     )
     .catch(err => {
@@ -229,6 +233,23 @@ function App() {
       setError("Failed to fetch time")
     });
   }
+
+  const fetchVdot = (time: string) => {
+    setError(""); // Clear previous errors
+    const encodedTime = encodeURIComponent(time)
+    const mappedDistance = distanceMapping[raceDistance as keyof typeof distanceMapping]
+    const encodedDistance = encodeURIComponent(mappedDistance)
+    axios.get(`http://127.0.0.1:8000/vdot?distance=${encodedDistance}&time=${encodedTime}`)
+    .then(
+      response => {
+        setVdot(`VDOT: ${response.data.vdot}`);
+      }
+    )
+    .catch(err => {
+      console.error("Error fetching data:", err);
+      setError("Failed to fetch pace.")
+    });
+  };
 
   // Calculate Pace Percentages
   const fetchPacePercentages = (pace: string) => {
@@ -286,6 +307,14 @@ function App() {
   };
 
   const distances = [
+    {
+      value: '800M',
+      label: '800M'
+    },
+    {
+      value: '1600M',
+      label: '1600M'
+    },
     {
       value: '5K',
       label: '5K'
@@ -466,6 +495,21 @@ function App() {
 
               {/* Error Message */}
               {error && <p style={{ color: "red" }}>{error}</p>}
+              {/* VDOT */}
+              <Typography
+                component="a"
+                href="https://support.vdoto2.com/v-o2-faq/"
+                target="_blank"
+                rel="noopener noreferrer"
+                color="primary"
+                variant="h6"
+                sx={{ textDecoration: 'none',
+                      '&:hover': { textDecoration: 'underline' },
+                    }}
+              >
+                {`${vdot}`}
+              </Typography>
+
               </Stack>
               {/* Workout Paces*/}
               <TableContainer component={Paper}>
