@@ -463,6 +463,7 @@ dependencies = [
     { name = "fastapi", extra = ["standard"] },
     { name = "pytest" },
     { name = "requests" },
+    { name = "sqlalchemy" },
     { name = "sqlmodel" },
 ]
 
@@ -471,6 +472,7 @@ requires-dist = [
     { name = "fastapi", extras = ["standard"], specifier = ">=0.115.6" },
     { name = "pytest", specifier = ">=8.3.4" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "sqlalchemy", specifier = ">=2.0.37" },
     { name = "sqlmodel", specifier = ">=0.0.22" },
 ]
 
