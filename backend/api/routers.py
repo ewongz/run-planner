@@ -1,8 +1,16 @@
-from fastapi import APIRouter, Query
-from . import calcs
-from .models import workout_paces, WorkoutBlock
+from fastapi import APIRouter, Query, Depends, status
 from typing import Literal, Annotated
-import uuid
+from api import calcs
+from api.models import Workout
+from api.schemas import WorkoutCreate, WorkoutResponse
+from api.core.database import get_session, fetch_all, fetch_one, execute
+from api.core.exceptions import NotFoundException
+from api.core.logging import get_logger
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy import select, delete
+
+logger = get_logger(__name__)
 router = APIRouter()
 
 @router.get("/race_pace")
@@ -55,6 +63,40 @@ def pace_percentage(pace: Annotated[str | None, Query(pattern="^[^:]*(:[^:]*:?[^
 @router.get("/pace_workouts")
 def pace_workouts(pace: Annotated[str | None, Query(pattern="^[^:]*(:[^:]*:?[^:]*|[^:]*:)$")] = "6:00",
                   method: Annotated[Literal["pace", "speed"], "calculation method"] = "pace"):
+    workout_paces =[
+        {
+            "Percentage of Pace": 80,
+            "Designation": "Basic Endurance"
+        },
+        {
+            "Percentage of Pace": 85,
+            "Designation": "General Endurance"
+        },
+        {
+            "Percentage of Pace": 90,
+            "Designation": "Race-supportive Endurance"
+        },
+        {
+            "Percentage of Pace": 95,
+            "Designation": "Race-specific Endurance"
+        },
+        {
+            "Percentage of Pace": 100,
+            "Designation": "Race Pace"
+        },
+        {
+            "Percentage of Pace": 105,
+            "Designation": "Race-specific Speed"
+        },
+        {
+            "Percentage of Pace": 110,
+            "Designation": "Race-supportive Speed"
+        },
+        {
+            "Percentage of Pace": 115,
+            "Designation": "General Speed"
+        }
+    ]
     parsed_pace= calcs.parse_str_time(pace)
     if method == "pace":
         update_pace = calcs.percentage_of_pace
@@ -99,17 +141,64 @@ def vdot_paces(vdot: float,
             training_paces[name] = formatted_pace
     return {"training_paces": training_paces}
 
-@router.post("/build_workout")
-def build_workout(workout_block: WorkoutBlock):
-    pace = workout_block.pace
-    time = workout_block.time
-    distance = workout_block.distance
-    if time:
-        h, m, s = calcs.get_hms(time)
-        estimated_time = f"{h}:{m:02}:{s:02}"
-    elif pace:
-        pace_time_seconds = calcs.parse_hhmmss_into_seconds(pace)
-        estimated_time_seconds = distance * pace_time_seconds
-        h, m, s = calcs.get_hms(estimated_time_seconds)
-        estimated_time = f"{h}:{m:02}:{s:02}"
-    return {"estimated_time": estimated_time}
+@router.post("/create_workout", response_model=WorkoutResponse,
+             response_model_exclude_unset=True)
+async def create_workout(workout_data: WorkoutCreate,
+                         session: AsyncSession=Depends(get_session)):
+    """Create a new workout.
+    Args:
+        workout_data: Workout creation data
+    Returns:
+        Workout: Created Workout
+    """
+    workout = Workout(**workout_data.model_dump())
+    try:
+        session.add(workout)
+        await session.commit()
+        await session.refresh(workout)
+        return workout
+    except IntegrityError:
+        await session.rollback()
+        raise
+
+@router.get("/get_workouts")
+async def get_all_workouts():
+    """Get all workouts"""
+    try:
+        result = await fetch_all(select_query=select(Workout))
+        if len(result) > 1:
+            return result
+        else:
+            return []
+    except Exception as e:
+        logger.error(f"Failed to fetch workouts: {str(e)}")
+
+@router.get("/{workout_id}", response_model=WorkoutResponse)
+async def get_workout(
+    workout_id: int,
+    session: AsyncSession=Depends(get_session))-> WorkoutResponse:
+    """Get workout by ID."""
+    logger.debug(f"Fetching workout {workout_id}")
+    try:
+        workout = await fetch_one(
+            select_query=select(Workout).where(Workout.id == workout_id)
+        )
+        if not workout:
+            raise NotFoundException(f"Workout with id {workout_id} not found")
+        return workout
+    except Exception as e:
+        logger.error(f"Failed fetch workout id {workout_id}: {str(e)}")
+        raise
+
+@router.delete("/{workout_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_workout(
+    workout_id: int,
+    session: AsyncSession=Depends(get_session)
+) -> None:
+    """Delete workout by ID."""
+    logger.debug(f"Deleting workout {workout_id}")
+    query = delete(Workout).where(Workout.id == workout_id)
+    result = await session.execute(query)
+    if result.rowcount == 0:
+        raise NotFoundException(f"Workout with id {workout_id} not found")
+    await session.commit()

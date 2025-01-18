@@ -1,4 +1,4 @@
-from .. import calcs
+from api import calcs
 from datetime import timedelta
 def test_convert_seconds_to_hours_minutes_seconds():
     result = calcs.format_time_delta(timedelta(seconds=3700))
