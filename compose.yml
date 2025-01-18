@@ -11,6 +11,11 @@ services:
     tty: true
     environment:
       - PYTHONUNBUFFERED=0
+      - PYTHONPATH=/app
+    depends_on:
+      - app_db
+    networks:
+      - app_network
     develop:
       # Create a `watch` configuration to update the appl
       # https://docs.docker.com/compose/file-watch/#compose-watch-versus-bind-mounts
@@ -56,3 +61,23 @@ services:
         # Rebuild the image on changes to the `pyproject.toml`
         - action: rebuild
           path: frontend/package-lock.json
+  app_db:
+    container_name: app_db
+    hostname: app_db
+    image: library/postgres:16.3
+    environment:
+      - POSTGRES_USER=app
+      - POSTGRES_PASSWORD=app
+      - POSTGRES_DB=app
+    volumes:
+      - app_db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - app_network
+volumes:
+  app_db_data:
+    driver: "local"
+networks:
+  app_network:
+    driver: bridge
