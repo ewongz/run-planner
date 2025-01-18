@@ -30,6 +30,6 @@ jobs:
           python-version-file: "backend/pyproject.toml"
       - name: Test with pytest
         env:
-          PYTHONPATH: "backend/app"
+          PYTHONPATH: "${{ github.workspace }}/app"
         run: |
           uv run pytest tests
