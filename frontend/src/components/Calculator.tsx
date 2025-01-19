@@ -27,6 +27,7 @@ function Calculator() {
   const [error, setError] = useState<string>("");
   const [workoutPaces, setWorkoutPaces] = useState<[]>([]);
   const [vdot, setVdot] = useState<string>("");
+  const [otherDistance, setOtherDistance] = useState<string>("");
 
   const reset = () => {
     setError(""); // Clear previous errors
@@ -50,12 +51,25 @@ function Calculator() {
     }
   };
 
+  const MetersToMiles = (distance:number) => {
+    if (isMiles) {
+      return distance * 0.000621371
+    } else {
+      return distance * 0.001
+    }
+  }
+
   // Calculate Pace
   const fetchPace = () => {
     setError(""); // Clear previous errors
     const encodedTime = encodeURIComponent(time)
-    const mappedDistance = distanceMapping[raceDistance as keyof typeof distanceMapping]
-    const encodedDistance = encodeURIComponent(mappedDistance)
+    let mappedDistance;
+    if (raceDistance === "Other") {
+      mappedDistance = 50 
+    } else {
+      mappedDistance = distanceMapping[raceDistance as keyof typeof distanceMapping]
+    }
+    const encodedDistance = encodeURIComponent(MetersToMiles(mappedDistance))
     let unit;
     if (isMiles) {
       unit = "mi";
@@ -120,6 +134,18 @@ function Calculator() {
       setError("Failed to fetch pace.")
     });
   };
+  // handle distance
+  const handleDistance = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.value === "other") {
+
+
+    } else {
+      setRaceDistance(e.target.value)
+    }
+
+
+  }
+  
 
   // Calculate Pace Percentages
   const fetchPacePercentages = (pace: string) => {
@@ -196,6 +222,10 @@ function Calculator() {
     {
       value: 'Marathon',
       label: 'Marathon'
+    },
+    {
+      value: 'Other',
+      label: 'Other'
     }
   ]
 
@@ -205,7 +235,8 @@ function Calculator() {
     '5K': 5000,
     '10K': 10000,
     'Half Marathon': 21097.5,
-    'Marathon': 42195
+    'Marathon': 42195,
+    'Other': 0
   }
 
   return (   

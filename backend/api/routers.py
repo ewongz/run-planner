@@ -16,12 +16,10 @@ router = APIRouter()
 @router.get("/race_pace")
 def race_pace(finish_time: Annotated[str | None, Query(pattern="^[^:]*(:[^:]*:?[^:]*|[^:]*:)$")] = "20:00",
               unit: Annotated[Literal["mi", "km"], "pace units in km or mi"] = "mi",
-              distance: Annotated[float, "race distance in meters"] = 5000):
+              distance: Annotated[float, "race distance in unit"] = 3):
     parsed_time = calcs.parse_str_time(finish_time)
-    pace = calcs.get_pace(parsed_time, distance / 1000) # seconds/km
-    if unit == "mi":
-        pace = calcs.convert_to_mi_pace(pace)
-    formatted_pace =  calcs.format_time_delta(pace) # mm:ss/km
+    pace = calcs.get_pace(parsed_time, distance)
+    formatted_pace =  calcs.format_time_delta(pace)
     return {"pace": formatted_pace}
 
 @router.get("/race_time")
