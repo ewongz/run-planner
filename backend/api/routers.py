@@ -15,7 +15,6 @@ router = APIRouter()
 
 @router.get("/race_pace")
 def race_pace(finish_time: Annotated[str | None, Query(pattern="^[^:]*(:[^:]*:?[^:]*|[^:]*:)$")] = "20:00",
-              unit: Annotated[Literal["mi", "km"], "pace units in km or mi"] = "mi",
               distance: Annotated[float, "race distance in unit"] = 3):
     parsed_time = calcs.parse_str_time(finish_time)
     pace = calcs.get_pace(parsed_time, distance)

@@ -27,6 +27,8 @@ function Calculator() {
   const [error, setError] = useState<string>("");
   const [workoutPaces, setWorkoutPaces] = useState<[]>([]);
   const [vdot, setVdot] = useState<string>("");
+  const [renderOtherDistance, setRenderOtherDistance] = useState<boolean>(false);
+  const [otherDistanceUnit, setOtherDistanceUnit] = useState<string>("mi");
   const [otherDistance, setOtherDistance] = useState<string>("");
 
   const reset = () => {
@@ -59,24 +61,27 @@ function Calculator() {
     }
   }
 
+  const MilesToMeters = (distance:number) => {
+    if (isMiles) {
+      return distance / 0.000621371
+    } else {
+      return distance / 0.001
+    }
+  }
+
   // Calculate Pace
   const fetchPace = () => {
     setError(""); // Clear previous errors
     const encodedTime = encodeURIComponent(time)
     let mappedDistance;
+    let encodedDistance;
     if (raceDistance === "Other") {
-      mappedDistance = 50 
+      encodedDistance = encodeURIComponent(Number(otherDistance))
     } else {
       mappedDistance = distanceMapping[raceDistance as keyof typeof distanceMapping]
+      encodedDistance = encodeURIComponent(MetersToMiles(mappedDistance))
     }
-    const encodedDistance = encodeURIComponent(MetersToMiles(mappedDistance))
-    let unit;
-    if (isMiles) {
-      unit = "mi";
-    } else {
-      unit = "km";
-    }
-    axios.get(`http://127.0.0.1:8000/race_pace?finish_time=${encodedTime}&unit=${unit}&distance=${encodedDistance}`)
+    axios.get(`http://127.0.0.1:8000/race_pace?finish_time=${encodedTime}&distance=${encodedDistance}`)
     .then(
       response => {
         const paceData = `${response.data.pace}`
@@ -121,8 +126,14 @@ function Calculator() {
   const fetchVdot = (time: string) => {
     setError(""); // Clear previous errors
     const encodedTime = encodeURIComponent(time)
-    const mappedDistance = distanceMapping[raceDistance as keyof typeof distanceMapping]
-    const encodedDistance = encodeURIComponent(mappedDistance)
+    let mappedDistance;
+    let encodedDistance;
+    if (otherDistance) {
+      encodedDistance = encodeURIComponent(MilesToMeters(Number(otherDistance)))
+    } else {
+      mappedDistance = distanceMapping[raceDistance as keyof typeof distanceMapping]
+      encodedDistance = encodeURIComponent(mappedDistance)
+    }
     axios.get(`http://127.0.0.1:8000/vdot?distance=${encodedDistance}&time=${encodedTime}`)
     .then(
       response => {
@@ -135,17 +146,14 @@ function Calculator() {
     });
   };
   // handle distance
-  const handleDistance = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.value === "other") {
-
-
+  const handleDistance = (d: string) => {
+    setRaceDistance(d)
+    if (d=== "Other") {
+      setRenderOtherDistance(true)
     } else {
-      setRaceDistance(e.target.value)
+      setRenderOtherDistance(false)
     }
-
-
-  }
-  
+  } 
 
   // Calculate Pace Percentages
   const fetchPacePercentages = (pace: string) => {
@@ -198,6 +206,17 @@ function Calculator() {
     }
   };
 
+  const units = [
+    {
+      value: 'mi',
+      label: 'mi'
+    },
+    {
+      value: 'km',
+      label: 'km'
+    }
+  ]
+
   const distances = [
     {
       value: '800M',
@@ -249,7 +268,7 @@ function Calculator() {
                   select
                   label="Select a Race Distance"
                   value={raceDistance}
-                  onChange={(e) => setRaceDistance(e.target.value)} // Trigger data fetch on change
+                  onChange={(e) => handleDistance(e.target.value)} // Trigger data fetch on change
                 >
                   {
                     distances.map(
@@ -261,6 +280,40 @@ function Calculator() {
                   }
                 </TextField>
               </FormControl>
+                {renderOtherDistance && (
+                  <FormControl sx={{ m:1, minWidth:250 }}>
+                  <Stack direction="row" spacing={2}>
+                    {/* Input Other Distance */}
+                    <FormControl sx={{ m:1, minWidth:150 }}>
+                      <TextField
+                        id="other-distance-field"
+                        label="Distance"
+                        value={otherDistance}
+                        onChange={(e) => setOtherDistance(e.target.value)}
+                        inputProps={{
+                          maxLength: 8
+                        }}
+                      >
+                      </TextField>
+                    </FormControl>
+                    <TextField
+                    id="other-distance-unit-select"
+                    select
+                    value={otherDistanceUnit}
+                    onChange={(e) => setOtherDistanceUnit(e.target.value)} // Trigger data fetch on change
+                  >
+                    {
+                      units.map(
+                        (option) => (
+                          <MenuItem key={option.value} value={option.value}>
+                            {option.label}
+                          </MenuItem>
+                      ))
+                    }
+                  </TextField>
+                </Stack>
+                </FormControl>
+                  )} 
 
               {/* Input Finish Time */}
               <FormControl sx={{ m:1, minWidth:250 }}>
