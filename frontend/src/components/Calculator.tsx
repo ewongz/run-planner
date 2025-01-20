@@ -100,8 +100,14 @@ function Calculator() {
   const fetchTime = () => {
     setError(""); // Clear previous errors
     const encodedPace = encodeURIComponent(pace)
-    const mappedDistance = distanceMapping[raceDistance as keyof typeof distanceMapping]
-    const encodedDistance = encodeURIComponent(mappedDistance)
+    let mappedDistance;
+    let encodedDistance;
+    if (otherDistance) {
+      encodedDistance = encodeURIComponent(MilesToMeters(Number(otherDistance)))
+    } else {
+      mappedDistance = distanceMapping[raceDistance as keyof typeof distanceMapping]
+      encodedDistance = encodeURIComponent(mappedDistance)
+    }
     let unit;
     if (isMiles) {
       unit = "mi";
