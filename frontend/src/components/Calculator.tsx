@@ -39,6 +39,7 @@ function Calculator() {
     setLastUpdated("");
     setWorkoutPaces([]);
     setVdot("");
+    setOtherDistance("");
   };
 
   const calculate = () => {
@@ -157,6 +158,7 @@ function Calculator() {
     if (d=== "Other") {
       setRenderOtherDistance(true)
     } else {
+      setOtherDistance("")
       setRenderOtherDistance(false)
     }
   } 
