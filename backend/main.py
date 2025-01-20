@@ -9,7 +9,7 @@ from api.core.migrations import run_migrations
 
 setup_logging()
 logger = get_logger(__name__)
-# run_migrations()
+run_migrations()
 
 app = FastAPI(title="Marathon Training Planner",
               docs_url="/docs",
