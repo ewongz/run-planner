@@ -39,7 +39,7 @@ import {
 
 // Types and interfaces for our component
 interface Segment {
-    id: string;
+    id: number;
     type: 'Warm Up' | 'Intervals' | 'Recovery' | 'Cool Down';
     measurement: 'time' | 'distance';
     duration?: {
@@ -50,7 +50,7 @@ interface Segment {
       value: number;
       unit: 'mi' | 'km' | 'm';
     };
-    pace: {
+    pace?: {
       value: string;
       zone: 1 | 2 | 3 | 4 | 5;
     };
@@ -109,14 +109,13 @@ type PaceUnit = 'minPerMile' | 'minPerKm' | 'mph';
 
 function Workout() {
   const [workoutName, setWorkoutName] = useState<string>("");
+  const [segments, setSegments] = useState<Segment[]>([]);
   const [pace, setPace] = useState<string>("");
   const [time, setTime] = useState<string>("");
   const [distance, setDistance] = useState<string>("");
   const [paceUnit, setPaceUnit] = useState<string>("mi");
-  const [renderEditSegment, setRenderEditSegment] = useState<boolean>(false);
-  const [renderEditInterval, setRenderEditInterval] = useState<boolean>(false);
   const [selectedSegment, setSelectedSegment] = useState<string | null>(null);
-  const [segmentType, setSegmentType] = useState<'time' | 'distance'>('time');
+  const [measurementType, setMeasurementType] = useState<'time' | 'distance'>('time');
 
   const formatTime = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTime(handleTimeInput(e))
@@ -136,6 +135,19 @@ function Workout() {
       label: 'km'
     }
   ]
+
+  const addSegment = (): void => {
+    setSegments(prevSegments => [...prevSegments, {
+      id: Date.now(),
+      type: 'Intervals',
+      measurement: 'distance'
+    }]);
+  };
+
+  const removeSegment = (segmentId: number): void => {
+    const updatedSegments = segments.filter(seg => seg.id !== segmentId);
+    setSegments(updatedSegments);
+  };
   
   const displayPace = (pace:string) => {
     if (!pace) return '';
@@ -154,27 +166,59 @@ function Workout() {
   };
 
   // Component for the configuration panel
-  const SegmentConfig: React.FC<{ type: string }> = ({ type }) => {
+  const SegmentConfig: React.FC<{ workoutType: string }> = ({ workoutType }) => {
     const handleMeasurementChange = (_: React.MouseEvent<HTMLElement>, newValue: 'time' | 'distance') => {
       if (newValue !== null) {
-        setSegmentType(newValue);
+        setMeasurementType(newValue);
       }
     };
-
+    const options = [
+      { label: 'Warm Up', value: 'Warm Up' },
+      { label: 'Intervals', value: 'Intervals' },
+      { label: 'Training', value: 'Training' },
+      { label: 'Recovery', value: 'Recovery' },
+      { label: 'Cool Down', value: 'Cool Down' }
+    ];
     return (
       <Box sx={{ width: 320, p: 3 }}>
         <Stack spacing={3}>
           {/* Header with close button */}
           <Box display="flex" justifyContent="space-between" alignItems="center">
-            <Typography variant="h6">Configure {type}</Typography>
+            <Typography variant="h6">Configure {workoutType}</Typography>
             <IconButton onClick={() => setSelectedSegment(null)} size="small">
               <Close />
             </IconButton>
           </Box>
 
+          {/* Segment type selection */}
+          <FormControl fullWidth>
+          <InputLabel>Segment Type</InputLabel>
+            <Select value={selectedSegment} onChange={(e) => setSelectedSegment(e.target.value)} label="Segment Type">
+              {options.map((option) => (
+                <MenuItem key={option.label} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          {
+            workoutType === "Intervals" && (
+              <>
+              <TextField
+              fullWidth
+              type="number"
+              label="Number of Repetitions"
+              variant="outlined"
+              />
+              <Divider />
+              <Typography variant="subtitle1">Work Interval</Typography>
+              </>
+            )
+          }
+
           {/* Measurement type toggle */}
           <ToggleButtonGroup
-            value={segmentType}
+            value={measurementType}
             exclusive
             onChange={handleMeasurementChange}
             fullWidth
@@ -184,7 +228,7 @@ function Workout() {
           </ToggleButtonGroup>
 
           {/* Dynamic measurement input */}
-          {segmentType === 'time' ? (
+          {measurementType === 'time' ? (
             <Grid2 container spacing={2}>
               <Grid2 size={6}>
                 <TextField
@@ -239,22 +283,81 @@ function Workout() {
           </FormControl>
 
           {/* Interval-specific configuration */}
-          {type === 'Intervals' && (
+          {workoutType === 'Intervals' && (
             <>
               <Divider />
-              <Typography variant="subtitle1">Interval Configuration</Typography>
-              <TextField
-                fullWidth
-                type="number"
-                label="Number of Repetitions"
-                variant="outlined"
-              />
+              <Typography variant="subtitle1">Recovery Interval</Typography>
               <FormControl fullWidth>
                 <InputLabel>Recovery Type</InputLabel>
                 <Select label="Recovery Type" defaultValue="walking">
                   <MenuItem value="walking">Walking</MenuItem>
                   <MenuItem value="jogging">Jogging</MenuItem>
                   <MenuItem value="standing">Standing</MenuItem>
+                </Select>
+              </FormControl>
+              {/* Measurement type toggle */}
+              <ToggleButtonGroup
+                value={measurementType}
+                exclusive
+                onChange={handleMeasurementChange}
+                fullWidth
+              >
+                <ToggleButton value="time">Time</ToggleButton>
+                <ToggleButton value="distance">Distance</ToggleButton>
+              </ToggleButtonGroup>
+
+              {/* Dynamic measurement input */}
+              {measurementType === 'time' ? (
+                <Grid2 container spacing={2}>
+                  <Grid2 size={6}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Minutes"
+                      variant="outlined"
+                    />
+                  </Grid2>
+                  <Grid2 size={6}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Seconds"
+                      variant="outlined"
+                    />
+                  </Grid2>
+                </Grid2>
+              ) : (
+                <Grid2 container spacing={2}>
+                  <Grid2 size={7}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Distance"
+                      variant="outlined"
+                    />
+                  </Grid2>
+                  <Grid2 size={5}>
+                    <FormControl fullWidth>
+                      <InputLabel>Unit</InputLabel>
+                      <Select label="Unit" defaultValue="mi">
+                        <MenuItem value="mi">Miles</MenuItem>
+                        <MenuItem value="km">Kilometers</MenuItem>
+                        <MenuItem value="m">Meters</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid2>
+                </Grid2>
+              )}
+
+              {/* Pace selection */}
+              <FormControl fullWidth>
+                <InputLabel>Target Pace</InputLabel>
+                <Select label="Target Pace" defaultValue="easy">
+                  <MenuItem value="easy">Easy (9:00-10:00 /mi)</MenuItem>
+                  <MenuItem value="moderate">Moderate (8:00-9:00 /mi)</MenuItem>
+                  <MenuItem value="hard">Hard (7:00-8:00 /mi)</MenuItem>
+                  <MenuItem value="sprint">Sprint (6:00-7:00 /mi)</MenuItem>
+                  <MenuItem value="custom">Custom</MenuItem>
                 </Select>
               </FormControl>
             </>
@@ -316,10 +419,10 @@ function Workout() {
         {/* Workout Timeline */}
         <Grid2 size={9}>
           <Paper sx={{ p: 2, height: '600px', position: 'relative' }}>
-            <Typography variant="h6" gutterBottom>Workout Timeline</Typography>
+            <Typography variant="h6" gutterBottom>Segments</Typography>
             <Stack spacing={2}>
               {/* Segment Cards */}
-              <Card onClick={() => setSelectedSegment('Warm Up')}>
+              <Card onClick={() => setSelectedSegment('Warm Up')} elevation={3}>
                 <CardContent>
                   <Box display="flex" justifyContent="space-between" alignItems="center">
                     <Box>
@@ -350,6 +453,7 @@ function Workout() {
               <Button
                 variant="outlined"
                 startIcon={<AddIcon />}
+                onClick={addSegment}
                 sx={{ mt: 2 }}
                 fullWidth
               >
@@ -363,7 +467,7 @@ function Workout() {
               open={selectedSegment !== null}
               onClose={() => setSelectedSegment(null)}
             >
-              {selectedSegment && <SegmentConfig type={selectedSegment} />}
+              {selectedSegment && <SegmentConfig workoutType={selectedSegment} />}
             </Drawer>
           </Paper>
         </Grid2>
