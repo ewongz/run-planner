@@ -11,6 +11,7 @@ import Tab from '@mui/material/Tab';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from "@mui/material/Toolbar";
 import Calculator from "./components/Calculator";
+import Workouts from "./components/Workouts";
 import { TabPanel } from "./components/TabPanel";
 import { ThemeProvider, PaletteMode} from '@mui/material';
 import getTheme from "./styles/theme";
@@ -92,6 +93,10 @@ function App() {
         {/* Pace-calculator"*/}
         <TabPanel value={value} index={0}>
           <Calculator />
+        </TabPanel>
+        {/* Workout Builder"*/}
+        <TabPanel value={value} index={1}>
+          <Workouts />
         </TabPanel>
     </Box>
     </ThemeProvider>
