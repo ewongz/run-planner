@@ -5,7 +5,7 @@ from api.models import Workout
 from api.schemas import WorkoutCreate, WorkoutResponse
 from api.core.database import get_session, fetch_all, fetch_one, execute
 from api.core.exceptions import NotFoundException
-from api.core.logging import get_logger
+from api.core.app_logging import get_logger
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select, delete

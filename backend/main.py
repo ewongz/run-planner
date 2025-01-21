@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 from api import routers
-from api.core.logging import get_logger, setup_logging
+from api.core.app_logging import get_logger, setup_logging
 from api.core.config import app_configs, settings
 from api.core.migrations import run_migrations
 
