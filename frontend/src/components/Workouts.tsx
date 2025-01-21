@@ -59,7 +59,7 @@ interface Segment {
 
 interface IntervalConfig extends Segment {
     repetitions: number;
-    recoveryType: 'Walking' | 'Jogging' | 'Standing';
+    recoveryType: 'Rest' | 'Run';
     workInterval: {
         measurement: 'time' | 'distance';
         duration?: {
@@ -110,31 +110,8 @@ type PaceUnit = 'minPerMile' | 'minPerKm' | 'mph';
 function Workout() {
   const [workoutName, setWorkoutName] = useState<string>("");
   const [segments, setSegments] = useState<Segment[]>([]);
-  const [pace, setPace] = useState<string>("");
-  const [time, setTime] = useState<string>("");
-  const [distance, setDistance] = useState<string>("");
   const [paceUnit, setPaceUnit] = useState<string>("mi");
   const [selectedSegment, setSelectedSegment] = useState<string | null>(null);
-  const [measurementType, setMeasurementType] = useState<'time' | 'distance'>('time');
-
-  const formatTime = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTime(handleTimeInput(e))
-  }
-
-  const formatPace = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPace(handleTimeInput(e))
-  }
-
-  const units = [
-    {
-      value: 'mi',
-      label: 'mi'
-    },
-    {
-      value: 'km',
-      label: 'km'
-    }
-  ]
 
   const addSegment = (): void => {
     setSegments(prevSegments => [...prevSegments, {
@@ -167,11 +144,27 @@ function Workout() {
 
   // Component for the configuration panel
   const SegmentConfig: React.FC<{ workoutType: string }> = ({ workoutType }) => {
+    const [disableDistance, setDisableDistance] = useState<boolean>(true);
+    const [measurementType, setMeasurementType] = useState<'time' | 'distance'>('time');
+    const [recoveryMeasurementType, setRecoveryMeasurementType] = useState<'time' | 'distance'>('time');
     const handleMeasurementChange = (_: React.MouseEvent<HTMLElement>, newValue: 'time' | 'distance') => {
       if (newValue !== null) {
         setMeasurementType(newValue);
       }
     };
+    const handleRecoveryMeasurementChange = (_: React.MouseEvent<HTMLElement>, newValue: 'time' | 'distance') => {
+      if (newValue !== null) {
+        setRecoveryMeasurementType(newValue);
+      }
+    };
+    const handleRecoveryOptions = (recoveryType: string): void => {
+      if (recoveryType != "run") {
+        setDisableDistance(true)
+        setRecoveryMeasurementType("time")
+      } else {
+        setDisableDistance(false)
+      }
+    }
     const options = [
       { label: 'Warm Up', value: 'Warm Up' },
       { label: 'Intervals', value: 'Intervals' },
@@ -289,25 +282,24 @@ function Workout() {
               <Typography variant="subtitle1">Recovery Interval</Typography>
               <FormControl fullWidth>
                 <InputLabel>Recovery Type</InputLabel>
-                <Select label="Recovery Type" defaultValue="walking">
-                  <MenuItem value="walking">Walking</MenuItem>
-                  <MenuItem value="jogging">Jogging</MenuItem>
-                  <MenuItem value="standing">Standing</MenuItem>
+                <Select label="Recovery Type" onChange={(e) => handleRecoveryOptions(e.target.value)} defaultValue="rest">
+                  <MenuItem value="run">Run</MenuItem>
+                  <MenuItem value="rest">Rest</MenuItem>
                 </Select>
               </FormControl>
               {/* Measurement type toggle */}
               <ToggleButtonGroup
-                value={measurementType}
+                value={recoveryMeasurementType}
                 exclusive
-                onChange={handleMeasurementChange}
+                onChange={handleRecoveryMeasurementChange}
                 fullWidth
               >
                 <ToggleButton value="time">Time</ToggleButton>
-                <ToggleButton value="distance">Distance</ToggleButton>
+                <ToggleButton value="distance" disabled={disableDistance}>Distance</ToggleButton>
               </ToggleButtonGroup>
 
               {/* Dynamic measurement input */}
-              {measurementType === 'time' ? (
+              {recoveryMeasurementType === 'time'? (
                 <Grid2 container spacing={2}>
                   <Grid2 size={6}>
                     <TextField
@@ -348,18 +340,19 @@ function Workout() {
                   </Grid2>
                 </Grid2>
               )}
-
               {/* Pace selection */}
+              {!disableDistance && (
               <FormControl fullWidth>
-                <InputLabel>Target Pace</InputLabel>
-                <Select label="Target Pace" defaultValue="easy">
-                  <MenuItem value="easy">Easy (9:00-10:00 /mi)</MenuItem>
-                  <MenuItem value="moderate">Moderate (8:00-9:00 /mi)</MenuItem>
-                  <MenuItem value="hard">Hard (7:00-8:00 /mi)</MenuItem>
-                  <MenuItem value="sprint">Sprint (6:00-7:00 /mi)</MenuItem>
-                  <MenuItem value="custom">Custom</MenuItem>
-                </Select>
-              </FormControl>
+              <InputLabel>Target Pace</InputLabel>
+              <Select label="Target Pace" defaultValue="easy">
+                <MenuItem value="easy">Easy (9:00-10:00 /mi)</MenuItem>
+                <MenuItem value="moderate">Moderate (8:00-9:00 /mi)</MenuItem>
+                <MenuItem value="hard">Hard (7:00-8:00 /mi)</MenuItem>
+                <MenuItem value="sprint">Sprint (6:00-7:00 /mi)</MenuItem>
+                <MenuItem value="custom">Custom</MenuItem>
+              </Select>
+            </FormControl>
+              )}
             </>
           )}
 
