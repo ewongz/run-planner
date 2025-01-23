@@ -24,62 +24,62 @@ import {
     ToggleButtonGroup,
     ToggleButton,
     Divider
-  } from '@mui/material';
-  import { Add as AddIcon, Delete as DeleteIcon, Save as SaveIcon } from '@mui/icons-material';
+  } from "@mui/material";
+  import { Add as AddIcon, Delete as DeleteIcon, Save as SaveIcon } from "@mui/icons-material";
 
 import { handleTimeInput } from "../utils/inputValidation";
-import { ThemeProvider, PaletteMode} from '@mui/material';
+import { ThemeProvider, PaletteMode} from "@mui/material";
 import {
     Close,
     Add,
     PlayArrow,
     Save,
     ChevronRight
-  } from '@mui/icons-material';
+  } from "@mui/icons-material";
 
 // Types and interfaces for our component
 interface Segment {
     id: number;
-    type: 'Warm Up' | 'Intervals' | 'Recovery' | 'Cool Down';
-    measurement: 'time' | 'distance';
+    type?: "Warm Up" | "Training" | "Intervals" | "Recovery" | "Cool Down";
+    measurement?: "time" | "distance";
     duration?: {
       minutes: number;
       seconds: number;
     };
     distance?: {
       value: number;
-      unit: 'mi' | 'km' | 'm';
+      unit: "mi" | "km" | "m";
     };
     pace?: {
       value: string;
-      zone: 1 | 2 | 3 | 4 | 5;
+      unit: "mi" | "km";
     };
     notes?: string;
   }
 
 interface IntervalConfig extends Segment {
     repetitions: number;
-    recoveryType: 'Rest' | 'Run';
+    recoveryType: "Rest" | "Run";
     workInterval: {
-        measurement: 'time' | 'distance';
+        measurement: "time" | "distance";
         duration?: {
         minutes: number;
         seconds: number;
         };
         distance?: {
         value: number;
-        unit: 'mi' | 'km' | 'm';
+        unit: "mi" | "km" | "m";
         };
     };
     recoveryInterval: {
-        measurement: 'time' | 'distance';
+        measurement: "time" | "distance";
         duration?: {
         minutes: number;
         seconds: number;
         };
         distance?: {
         value: number;
-        unit: 'mi' | 'km' | 'm';
+        unit: "mi" | "km" | "m";
         };
     };
 }
@@ -89,12 +89,12 @@ interface IntervalConfig extends Segment {
 const paceUtils = {
     convertPace: {
       toMinPerKm: (minPerMile:string) => {
-        const [mins, secs] = minPerMile.split(':').map(Number);
+        const [mins, secs] = minPerMile.split(":").map(Number);
         const totalSeconds = (mins * 60 + secs) / 1.60934;
-        return `${Math.floor(totalSeconds / 60)}:${String(Math.round(totalSeconds % 60)).padStart(2, '0')}`;
+        return `${Math.floor(totalSeconds / 60)}:${String(Math.round(totalSeconds % 60)).padStart(2, "0")}`;
       },
       toMPH: (minPerMile:string) => {
-        const [mins, secs] = minPerMile.split(':').map(Number);
+        const [mins, secs] = minPerMile.split(":").map(Number);
         const totalHours = (mins + secs / 60) / 60;
         return `${(1 / totalHours).toFixed(1)}`;
       }
@@ -105,20 +105,30 @@ const paceUtils = {
     }
   };
 
-type PaceUnit = 'minPerMile' | 'minPerKm' | 'mph';
+type PaceUnit = "minPerMile" | "minPerKm" | "mph";
+type WorkoutType = "Warm Up" | "Training" | "Intervals" | "Recovery" | "Cool Down";
+type DistanceUnit = "mi" | "km" | "m"
 
 function Workout() {
   const [workoutName, setWorkoutName] = useState<string>("");
-  const [segments, setSegments] = useState<Segment[]>([]);
+  const [segments, setSegments] = useState<(Segment | IntervalConfig)[]>([{
+    id: 1,
+    type: "Warm Up",
+    measurement: "time",
+    duration: {
+      minutes: 5,
+      seconds: 0,
+    },
+    pace: {
+      value: "9:00",
+      unit: "mi"
+    }
+  }]);
   const [paceUnit, setPaceUnit] = useState<string>("mi");
-  const [selectedSegment, setSelectedSegment] = useState<string | null>(null);
+  const [selectedSegment, setSelectedSegment] = useState<Segment | IntervalConfig | null>(null);
 
-  const addSegment = (): void => {
-    setSegments(prevSegments => [...prevSegments, {
-      id: Date.now(),
-      type: 'Intervals',
-      measurement: 'distance'
-    }]);
+  const addSegment = (segment: Segment | IntervalConfig): void => {
+    setSegments(prevSegments => [...prevSegments, segment]);
   };
 
   const removeSegment = (segmentId: number): void => {
@@ -127,11 +137,11 @@ function Workout() {
   };
   
   const displayPace = (pace:string) => {
-    if (!pace) return '';
+    if (!pace) return "";
     switch (paceUnit) {
-      case 'minPerKm':
+      case "minPerKm":
         return `${paceUtils.convertPace.toMinPerKm(pace)} /km`;
-      case 'mph':
+      case "mph":
         return `${paceUtils.convertPace.toMPH(pace)} mph`;
       default:
         return `${pace} /mi`;
@@ -143,16 +153,61 @@ function Workout() {
   };
 
   // Component for the configuration panel
-  const SegmentConfig: React.FC<{ workoutType: string }> = ({ workoutType }) => {
+  const SegmentConfig: React.FC<{ workoutSegment: Segment | IntervalConfig }> = ({ workoutSegment }) => {
+    const id = (workoutSegment.id || Date.now());
+    const [segmentType, setSegmentType] = useState<"Warm Up" | "Training" | "Intervals" | "Recovery" | "Cool Down">(workoutSegment.type || "Warm Up");
+    const [measurementType, setMeasurementType] = useState<"time" | "distance">(workoutSegment.measurement ||"time");
+    const [durationMinutes, setDurationMinutes] = useState<number>(workoutSegment.duration?.minutes || 0)
+    const [durationSeconds, setDurationSeconds] = useState<number>(workoutSegment.duration?.seconds || 0)
+    const [distance, setDistance] = useState<number>(workoutSegment.distance?.value || 0)
+    const [distanceUnit, setDistanceUnit] = useState<"mi" | "km" | "m">(workoutSegment.distance?.unit ?? "mi")
+    const [pace, setPace] = useState<string>(workoutSegment.pace?.value || "")
+    const [paceUnit, setPaceUnit] = useState<"mi" | "km">(workoutSegment.pace?.unit ?? "mi")
+    const [notes, setNotes] = useState<string>(workoutSegment.notes || "")
     const [disableDistance, setDisableDistance] = useState<boolean>(true);
-    const [measurementType, setMeasurementType] = useState<'time' | 'distance'>('time');
-    const [recoveryMeasurementType, setRecoveryMeasurementType] = useState<'time' | 'distance'>('time');
-    const handleMeasurementChange = (_: React.MouseEvent<HTMLElement>, newValue: 'time' | 'distance') => {
+    const [recoveryMeasurementType, setRecoveryMeasurementType] = useState<"time" | "distance">("time");
+    const createSegment = () => {
+      let newSeg;
+      if (measurementType === "time") {
+        newSeg = {
+          "id": id,
+          "type": segmentType,
+          "measurement": measurementType,
+          "pace": {
+            "value": pace,
+            "unit": paceUnit
+          },
+          "notes": notes,
+          "duration": {
+            "minutes": durationMinutes,
+            "seconds": durationSeconds
+          }
+          };
+        } else {
+          newSeg = {
+            "id": id,
+            "type": segmentType,
+            "measurement": measurementType,
+            "pace": {
+              "value": pace,
+              "unit": paceUnit
+            },
+            "notes": notes,
+            "distance": {
+              "value": distance,
+              "unit": distanceUnit
+            }
+            };
+        }
+        addSegment(newSeg)
+      }
+    
+    const handleMeasurementChange = (_: React.MouseEvent<HTMLElement>, newValue: "time" | "distance") => {
       if (newValue !== null) {
         setMeasurementType(newValue);
       }
     };
-    const handleRecoveryMeasurementChange = (_: React.MouseEvent<HTMLElement>, newValue: 'time' | 'distance') => {
+    const handleRecoveryMeasurementChange = (_: React.MouseEvent<HTMLElement>, newValue: "time" | "distance") => {
       if (newValue !== null) {
         setRecoveryMeasurementType(newValue);
       }
@@ -166,18 +221,18 @@ function Workout() {
       }
     }
     const options = [
-      { label: 'Warm Up', value: 'Warm Up' },
-      { label: 'Intervals', value: 'Intervals' },
-      { label: 'Training', value: 'Training' },
-      { label: 'Recovery', value: 'Recovery' },
-      { label: 'Cool Down', value: 'Cool Down' }
+      { label: "Warm Up", value: "Warm Up" },
+      { label: "Intervals", value: "Intervals" },
+      { label: "Training", value: "Training" },
+      { label: "Recovery", value: "Recovery" },
+      { label: "Cool Down", value: "Cool Down" }
     ];
     return (
       <Box sx={{ width: 320, p: 3 }}>
         <Stack spacing={3}>
           {/* Header with close button */}
           <Box display="flex" justifyContent="space-between" alignItems="center">
-            <Typography variant="h6">Configure {workoutType}</Typography>
+            <Typography variant="h6">Configure {workoutSegment.type}</Typography>
             <IconButton onClick={() => setSelectedSegment(null)} size="small">
               <Close />
             </IconButton>
@@ -186,7 +241,7 @@ function Workout() {
           {/* Segment type selection */}
           <FormControl fullWidth>
           <InputLabel>Segment Type</InputLabel>
-            <Select value={selectedSegment} onChange={(e) => setSelectedSegment(e.target.value)} label="Segment Type">
+            <Select value={segmentType} onChange={(e) => setSegmentType(e.target.value as WorkoutType)} label="Segment Type">
               {options.map((option) => (
                 <MenuItem key={option.label} value={option.value}>
                   {option.label}
@@ -195,7 +250,7 @@ function Workout() {
             </Select>
           </FormControl>
           {
-            workoutType === "Intervals" && (
+            segmentType === "Intervals" && (
               <>
               <TextField
               fullWidth
@@ -221,7 +276,7 @@ function Workout() {
           </ToggleButtonGroup>
 
           {/* Dynamic measurement input */}
-          {measurementType === 'time' ? (
+          {measurementType === "time" ? (
             <Grid2 container spacing={2}>
               <Grid2 size={6}>
                 <TextField
@@ -229,6 +284,8 @@ function Workout() {
                   type="number"
                   label="Minutes"
                   variant="outlined"
+                  value={durationMinutes}
+                  onChange={(e) => setDurationMinutes(Number(e.target.value))}
                 />
               </Grid2>
               <Grid2 size={6}>
@@ -237,6 +294,8 @@ function Workout() {
                   type="number"
                   label="Seconds"
                   variant="outlined"
+                  value={durationSeconds}
+                  onChange={(e) => setDurationSeconds(Number(e.target.value))}
                 />
               </Grid2>
             </Grid2>
@@ -248,12 +307,14 @@ function Workout() {
                   type="number"
                   label="Distance"
                   variant="outlined"
+                  value={distance}
+                  onChange={(e) => setDistance(Number(e.target.value))}
                 />
               </Grid2>
               <Grid2 size={5}>
                 <FormControl fullWidth>
                   <InputLabel>Unit</InputLabel>
-                  <Select label="Unit" defaultValue="mi">
+                  <Select label="Unit" defaultValue="mi" value={distanceUnit} onChange={(e) => setDistanceUnit(e.target.value as DistanceUnit)}>
                     <MenuItem value="mi">Miles</MenuItem>
                     <MenuItem value="km">Kilometers</MenuItem>
                     <MenuItem value="m">Meters</MenuItem>
@@ -266,7 +327,7 @@ function Workout() {
           {/* Pace selection */}
           <FormControl fullWidth>
             <InputLabel>Target Pace</InputLabel>
-            <Select label="Target Pace" defaultValue="easy">
+            <Select label="Target Pace" defaultValue="easy" value={pace} onChange={(e) => setPace(e.target.value)} >
               <MenuItem value="easy">Easy (9:00-10:00 /mi)</MenuItem>
               <MenuItem value="moderate">Moderate (8:00-9:00 /mi)</MenuItem>
               <MenuItem value="hard">Hard (7:00-8:00 /mi)</MenuItem>
@@ -276,7 +337,7 @@ function Workout() {
           </FormControl>
 
           {/* Interval-specific configuration */}
-          {workoutType === 'Intervals' && (
+          {segmentType === "Intervals" && (
             <>
               <Divider />
               <Typography variant="subtitle1">Recovery Interval</Typography>
@@ -299,7 +360,7 @@ function Workout() {
               </ToggleButtonGroup>
 
               {/* Dynamic measurement input */}
-              {recoveryMeasurementType === 'time'? (
+              {recoveryMeasurementType === "time"? (
                 <Grid2 container spacing={2}>
                   <Grid2 size={6}>
                     <TextField
@@ -362,12 +423,15 @@ function Workout() {
             rows={3}
             label="Notes"
             variant="outlined"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
           />
 
           <Button
             variant="contained"
             color="primary"
             fullWidth
+            onClick={createSegment}
           >
             Apply Changes
           </Button>
@@ -377,7 +441,7 @@ function Workout() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container>
         <Card>
             <CardContent>
                 <CardHeader
@@ -411,42 +475,57 @@ function Workout() {
                 </Grid2>
         {/* Workout Timeline */}
         <Grid2 size={9}>
-          <Paper sx={{ p: 2, height: '600px', position: 'relative' }}>
+          <Paper sx={{ p: 2, position: "relative" }}>
             <Typography variant="h6" gutterBottom>Segments</Typography>
             <Stack spacing={2}>
               {/* Segment Cards */}
-              <Card onClick={() => setSelectedSegment('Warm Up')} elevation={3}>
-                <CardContent>
-                  <Box display="flex" justifyContent="space-between" alignItems="center">
-                    <Box>
-                      <Typography variant="subtitle1">Warm Up</Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        1 mile at easy pace
-                      </Typography>
-                      <Stack direction="row" spacing={1} mt={1}>
-                        <Chip
-                          label="Zone 2"
-                          size="small"
-                          color="primary"
-                          variant="outlined"
-                        />
-                        <Chip
-                          label="9:30 /mi"
-                          size="small"
-                          color="success"
-                          variant="outlined"
-                        />
-                      </Stack>
-                    </Box>
-                    <ChevronRight />
-                  </Box>
-                </CardContent>
-              </Card>
-
+              {
+                segments.map(
+                  (segment) => (
+                    <Card onClick={() => setSelectedSegment(segment)} elevation={3}>
+                      <CardContent>
+                        <Box display="flex" justifyContent="space-between" alignItems="center">
+                          <Box>
+                            <Typography variant="subtitle1">{segment.type}</Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {segment.notes}
+                            </Typography>
+                            <Stack direction="row" spacing={1} mt={1}>
+                              <Chip
+                                label={
+                                  segment.distance
+                                    ? `${segment.distance.value} ${segment.distance.unit}`
+                                    : segment.duration
+                                    ? `${segment.duration.minutes}:${segment.duration.seconds.toString().padStart(2, "0")}`
+                                    : "No data available"
+                                }
+                                size="small"
+                                color="primary"
+                                variant="outlined"
+                              />
+                              <Chip
+                                label={
+                                  segment.pace
+                                    ? `${segment.pace.value} /${segment.pace.unit}`
+                                    : "No data available"
+                                }
+                                size="small"
+                                color="success"
+                                variant="outlined"
+                              />
+                            </Stack>
+                          </Box>
+                          <ChevronRight />
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  ) 
+                )
+              }
               <Button
                 variant="outlined"
                 startIcon={<AddIcon />}
-                onClick={addSegment}
+                onClick={() => setSelectedSegment({"id": Date.now()})}
                 sx={{ mt: 2 }}
                 fullWidth
               >
@@ -460,7 +539,7 @@ function Workout() {
               open={selectedSegment !== null}
               onClose={() => setSelectedSegment(null)}
             >
-              {selectedSegment && <SegmentConfig workoutType={selectedSegment} />}
+              {selectedSegment && <SegmentConfig workoutSegment={selectedSegment} />}
             </Drawer>
           </Paper>
         </Grid2>
