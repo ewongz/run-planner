@@ -115,6 +115,7 @@ function Workout() {
   const [segments, setSegments] = useState<(Segment | IntervalConfig)[]>([]);
   const [paceUnit, setPaceUnit] = useState<string>("mi");
   const [selectedSegment, setSelectedSegment] = useState<Segment | IntervalConfig | null>(null);
+  const [modifySegment, setModifySegment] = useState<boolean>(false);
 
   const addSegment = (segment: Segment | IntervalConfig): void => {
     console.log(segment)
@@ -125,6 +126,19 @@ function Workout() {
     const updatedSegments = segments.filter(seg => seg.id !== segmentId);
     setSegments(updatedSegments);
   };
+
+  const updateSegment = (updatedSegment: Segment | IntervalConfig): void => {
+    setSegments(prevSegments =>
+      prevSegments.map(segment =>
+        segment.id === updatedSegment.id ? updatedSegment : segment
+      )
+    );
+  };
+
+  const handleCardClick = (segment: Segment) => {
+    setSelectedSegment(segment)
+    setModifySegment(true)
+  }
   
   const displayPace = (pace:string) => {
     if (!pace) return "";
@@ -143,7 +157,7 @@ function Workout() {
   };
 
   // Component for the configuration panel
-  const SegmentConfig: React.FC<{ workoutSegment: Segment | IntervalConfig}> = ({ workoutSegment }) => {
+  const SegmentConfig: React.FC<{ workoutSegment: Segment | IntervalConfig; update: boolean}> = ({ workoutSegment, update }) => {
     const id = (workoutSegment.id || Date.now());
     const [segmentType, setSegmentType] = useState<Segment["type"]>(workoutSegment.type);
     const [measurementType, setMeasurementType] = useState<"time" | "distance">(workoutSegment.measurement ||"time");
@@ -176,6 +190,7 @@ function Workout() {
 
     const createSegment = () => {
       let newSegment;
+      console.log("here is the update value:", update)
       if (validateSegment()) {
         newSegment = {
           id,
@@ -186,10 +201,18 @@ function Workout() {
           ...(pace && {"pace": pace}),
           ...(notes && {"notes": notes}),
         };
-        addSegment(newSegment);
+        if (update === false) {
+          console.log("adding new segment:", newSegment)
+          addSegment(newSegment);
+        } else {
+          console.log("updating existing segment:", newSegment)
+          updateSegment(newSegment);
+        }
+        
       } else {
         alert("Missing required fields")
       }
+      setSelectedSegment(null);
     };
     
     const handleMeasurementChange = (_: React.MouseEvent<HTMLElement>, newMeasurementType: "time" | "distance") => {
@@ -488,7 +511,7 @@ function Workout() {
               {
                 segments.map(
                   (segment) => (
-                    <Card onClick={() => setSelectedSegment(segment)} elevation={3}>
+                    <Card onClick={() => handleCardClick(segment)} elevation={3}>
                       <CardContent>
                         <Box display="flex" justifyContent="space-between" alignItems="center">
                           <Box>
@@ -545,7 +568,7 @@ function Workout() {
               open={selectedSegment !== null}
               onClose={() => setSelectedSegment(null)}
             >
-              {selectedSegment && <SegmentConfig workoutSegment={selectedSegment} />}
+              {selectedSegment && <SegmentConfig workoutSegment={selectedSegment} update={modifySegment} />}
             </Drawer>
           </Paper>
         </Grid2>
