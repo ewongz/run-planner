@@ -18,6 +18,51 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import { handleTimeInput } from "../utils/inputValidation";
 
+const emptyWorkoutPaces = () => 
+  [
+    {
+        "Percentage of Pace": 80,
+        "Designation": "Basic Endurance",
+        "Pace": ""
+    },
+    {
+        "Percentage of Pace": 85,
+        "Designation": "General Endurance",
+        "Pace": ""
+    },
+    {
+        "Percentage of Pace": 90,
+        "Designation": "Race-supportive Endurance",
+        "Pace": ""
+    },
+    {
+        "Percentage of Pace": 95,
+        "Designation": "Race-specific Endurance",
+        "Pace": ""
+    },
+    {
+        "Percentage of Pace": 100,
+        "Designation": "Race Pace",
+        "Pace": ""
+    },
+    {
+        "Percentage of Pace": 105,
+        "Designation": "Race-specific Speed",
+        "Pace": ""
+    },
+    {
+        "Percentage of Pace": 110,
+        "Designation": "Race-supportive Speed",
+        "Pace": ""
+    },
+    {
+        "Percentage of Pace": 115,
+        "Designation": "General Speed",
+        "Pace": ""
+    }
+]
+
+
 function Calculator() {
   const [lastUpdated, setLastUpdated] = useState<string>("");
   const [pace, setPace] = useState<string>("");
@@ -25,7 +70,7 @@ function Calculator() {
   const [isMiles, setIsMiles] = useState<boolean>(false);
   const [raceDistance, setRaceDistance] = useState<string>("Marathon");
   const [error, setError] = useState<string>("");
-  const [workoutPaces, setWorkoutPaces] = useState<[]>([]);
+  const [workoutPaces, setWorkoutPaces] = useState<{ "Percentage of Pace": number; Designation: string; Pace: string; }[]>(emptyWorkoutPaces);
   const [vdot, setVdot] = useState<string>("");
   const [renderOtherDistance, setRenderOtherDistance] = useState<boolean>(false);
   const [otherDistanceUnit, setOtherDistanceUnit] = useState<string>("mi");
@@ -37,7 +82,7 @@ function Calculator() {
     setRaceDistance("");
     setPace("");
     setLastUpdated("");
-    setWorkoutPaces([]);
+    setWorkoutPaces(emptyWorkoutPaces);
     setVdot("");
     setOtherDistance("");
   };
