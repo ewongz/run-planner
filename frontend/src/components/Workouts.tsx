@@ -273,7 +273,7 @@ function Workout() {
       { label: "Cool Down", value: "Cool Down" }
     ];
     return (
-      <Box sx={{ p: 3 }}>
+      <Box sx={{ width:320, p: 3 }}>
         <Stack spacing={3}>
           {/* Header with close button */}
           <Box display="flex" justifyContent="space-between" alignItems="center">
@@ -416,7 +416,7 @@ function Workout() {
                       label="Minutes"
                       variant="outlined"
                       value={recoveryDuration?.minutes ?? ''}
-                      onChange={(e) => setRecoveryDuration({"minutes": Number(e.target.value), "seconds": duration?.seconds ?? undefined})}
+                      onChange={(e) => setRecoveryDuration({"minutes": Number(e.target.value), "seconds": recoveryDuration?.seconds ?? undefined})}
                     />
                   </Grid2>
                   <Grid2 size={6}>
@@ -426,7 +426,7 @@ function Workout() {
                       label="Seconds"
                       variant="outlined"
                       value={recoveryDuration?.seconds ?? ''}
-                      onChange={(e) => setRecoveryDuration({"minutes": duration?.minutes ?? undefined, "seconds": Number(e.target.value)})}
+                      onChange={(e) => setRecoveryDuration({"minutes": recoveryDuration?.minutes ?? undefined, "seconds": Number(e.target.value)})}
                     />
                   </Grid2>
                 </Grid2>
@@ -544,12 +544,11 @@ function Workout() {
                       <CardContent>
                         <Box display="flex" justifyContent="space-between" alignItems="center">
                           <Box>
-                            {'repetitions' in segment && segment.repetitions &&(
+                            {'repetitions' in segment && segment.repetitions ? (
                               <Typography variant="subtitle1">
                                 {segment.type} (Repeat {segment.repetitions}x)
                               </Typography>
-                            )}
-                            {!('repetitions' in segment) && (
+                            ): (
                               <Typography variant="subtitle1">{segment.type}</Typography>
                             )}
                             <Typography variant="body2" color="text.secondary">
