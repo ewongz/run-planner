@@ -115,9 +115,11 @@ function Workout() {
     setSegments(prevSegments => [...prevSegments, segment]);
   };
 
-  const removeSegment = (segmentId: number): void => {
+  const removeSegment = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, segmentId: number): void => {
     const updatedSegments = segments.filter(seg => seg.id !== segmentId);
     setSegments(updatedSegments);
+    setSelectedSegment(null);
+    event.stopPropagation()
   };
 
   const updateSegment = (updatedSegment: Segment | IntervalConfig): void => {
@@ -201,18 +203,25 @@ function Workout() {
     const createSegment = () => {
       let newSegment;
       console.log("here is the update value:", update)
+      console.log(recoveryDistance)
       if (validateSegment()) {
         newSegment = {
           id,
-          ...(segmentType && {"type": segmentType }),
-          ...(duration && {"duration": duration }),
-          ...(distance && {"distance": distance }),
-          ...(pace && {"pace": pace}),
-          ...(notes && {"notes": notes}),
-          ...(repetitions && {"repetitions": repetitions}),
-          ...(recoveryDuration && {"recoveryInterval": {"duration": recoveryDuration}}),
-          ...(recoveryDistance && {"recoveryInterval": {"distance": recoveryDistance}}),
-          ...(recoveryPace && {"recoveryInterval": {"pace": recoveryPace}})
+          ...(segmentType && { type: segmentType }),
+          ...(duration && { duration }),
+          ...(distance && { distance }),
+          ...(pace && { pace }),
+          ...(notes && { notes }),
+          ...(repetitions && { repetitions }),
+          ...(recoveryDuration || recoveryDistance || recoveryPace
+            ? {
+                recoveryInterval: {
+                  ...(recoveryDuration && { duration: recoveryDuration }),
+                  ...(recoveryDistance && { distance: recoveryDistance }),
+                  ...(recoveryPace && { pace: recoveryPace }),
+                },
+              }
+            : {}),
         };
         if (update === false) {
           console.log("adding new segment:", newSegment)
@@ -532,7 +541,7 @@ function Workout() {
           <Paper sx={{
             p: 2,
             position: "relative",
-            maxHeight:550,
+            maxHeight:750,
             overflow:"auto"
              }}>
             <Stack spacing={2}>
@@ -541,7 +550,7 @@ function Workout() {
                 segments.map(
                   (segment) => (
                     <Card onClick={() => handleCardClick(segment)} elevation={3}>
-                      <CardContent>
+                      <CardContent sx={{ position: "relative" }}>
                         <Box display="flex" justifyContent="space-between" alignItems="center">
                           <Box>
                             {'repetitions' in segment && segment.repetitions ? (
@@ -554,7 +563,69 @@ function Workout() {
                             <Typography variant="body2" color="text.secondary">
                               {segment.notes}
                             </Typography>
-                            <Stack direction="row" spacing={1} mt={1}>
+                            {'repetitions' in segment && segment.repetitions? (
+                              <Box margin={1} padding={1} justifyContent="space-between" alignItems="center">
+                                <Stack spacing={2}>
+                              <Card>
+                                <CardContent>
+                                  <Stack direction="row" spacing={1} mt={1}>
+                                    <Chip
+                                      label={
+                                        segment.distance
+                                          ? `${segment.distance.value} ${segment.distance.unit}`
+                                          : segment.duration
+                                          ? `${segment.duration.minutes}:${(segment.duration.seconds ?? 0).toString().padStart(2, "0")}`
+                                          : "No data available"
+                                      }
+                                      size="small"
+                                      color="primary"
+                                      variant="outlined"
+                                    />
+                                    <Chip
+                                      label={
+                                        segment.pace
+                                          ? `${segment.pace.value} /${segment.pace.unit}`
+                                          : "No data available"
+                                      }
+                                      size="small"
+                                      color="success"
+                                      variant="outlined"
+                                    />
+                                  </Stack>
+                                </CardContent>
+                              </Card>
+                              <Card>
+                              <CardContent>
+                                <Stack direction="row" spacing={1} mt={1}>
+                                  <Chip
+                                    label={
+                                      'recoveryInterval' in segment && segment.recoveryInterval?.distance
+                                        ? `${segment.recoveryInterval.distance.value} ${segment.recoveryInterval.distance.unit}`
+                                        : 'recoveryInterval' in segment && segment.recoveryInterval?.duration
+                                        ? `${segment.recoveryInterval.duration.minutes}:${(segment.recoveryInterval.duration.seconds ?? 0).toString().padStart(2, "0")}`
+                                        : "No data available"
+                                    }
+                                    size="small"
+                                    color="primary"
+                                    variant="outlined"
+                                  />
+                                  <Chip
+                                    label={
+                                      segment.recoveryInterval.pace
+                                        ? `${segment.recoveryInterval.pace.value} /${segment.recoveryInterval.pace.unit}`
+                                        : "No data available"
+                                    }
+                                    size="small"
+                                    color="success"
+                                    variant="outlined"
+                                  />
+                                </Stack>
+                              </CardContent>
+                            </Card>
+                            </Stack>
+                            </Box>
+                            ): (
+                              <Stack direction="row" spacing={1} mt={1}>
                               <Chip
                                 label={
                                   segment.distance
@@ -578,9 +649,23 @@ function Workout() {
                                 variant="outlined"
                               />
                             </Stack>
+                            )}
                           </Box>
-                          <ChevronRight />
                         </Box>
+                        <IconButton aria-label="delete"
+                          sx={{
+                            position: "absolute",
+                            bottom:3,
+                            right:8
+                          }}
+                          onClick={
+                            (e) => {
+                              removeSegment(e, segment.id)
+                            }
+                          }
+                        >
+                            <DeleteIcon fontSize="small"/>
+                        </IconButton>
                       </CardContent>
                     </Card>
                   ) 

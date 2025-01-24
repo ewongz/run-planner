@@ -88,7 +88,7 @@ function App() {
         bgcolor: "background.default",
         color: "text.primary",
         p: 3,
-        m: 5
+        m: 15
       }}
     > 
         {/* Pace-calculator"*/}

@@ -24,7 +24,8 @@ return (
               p: 2,
               display: "flex",
               alignItems: "flex-start",
-              minHeight: "100vh"
+              minHeight: "100vh",
+              maxHeight: 500
                 // width: "25ch",
             }}
         >
