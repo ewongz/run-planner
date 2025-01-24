@@ -369,7 +369,7 @@ function Workout() {
           {/* Pace selection */}
           <FormControl fullWidth>
             <InputLabel>Target Pace</InputLabel>
-            <Select label="Target Pace" defaultValue="easy" value={pace?.value} onChange={(e) => handlePace(e.target.value, false)} >
+            <Select label="Target Pace" value={pace?.value} onChange={(e) => handlePace(e.target.value, false)} >
               <MenuItem value="easy">Easy (9:00-10:00 /mi)</MenuItem>
               <MenuItem value="moderate">Moderate (8:00-9:00 /mi)</MenuItem>
               <MenuItem value="hard">Hard (7:00-8:00 /mi)</MenuItem>
@@ -453,7 +453,7 @@ function Workout() {
               {!disableDistance && (
               <FormControl fullWidth>
               <InputLabel>Target Pace</InputLabel>
-              <Select label="Target Pace" defaultValue="easy" value={recoveryPace?.value} onChange={(e) => handlePace(e.target.value, true)} >
+              <Select label="Target Pace" value={recoveryPace?.value} onChange={(e) => handlePace(e.target.value, true)} >
                 <MenuItem value="easy">Easy (9:00-10:00 /mi)</MenuItem>
                 <MenuItem value="moderate">Moderate (8:00-9:00 /mi)</MenuItem>
                 <MenuItem value="hard">Hard (7:00-8:00 /mi)</MenuItem>
@@ -523,8 +523,8 @@ function Workout() {
                 </Grid2>
         {/* Workout Timeline */}
         <Grid2 size={9}>
-          <Paper sx={{ p: 2, position: "relative" }}>
-            <Typography variant="h6" gutterBottom>Segments</Typography>
+        <Typography variant="h6" gutterBottom>Segments</Typography>
+          <Paper sx={{ p: 2, position: "relative" ,maxHeight:250, overflow:"auto"}}>
             <Stack spacing={2}>
               {/* Segment Cards */}
               {
@@ -577,15 +577,6 @@ function Workout() {
                   ) 
                 )
               }
-              <Button
-                variant="outlined"
-                startIcon={<AddIcon />}
-                onClick={() => setSelectedSegment({"id": Date.now()})}
-                sx={{ mt: 2 }}
-                fullWidth
-              >
-                Add Segment
-              </Button>
             </Stack>
 
             {/* Configuration Drawer */}
@@ -597,6 +588,15 @@ function Workout() {
               {selectedSegment && <SegmentConfig workoutSegment={selectedSegment} update={modifySegment} />}
             </Drawer>
           </Paper>
+          <Button
+                variant="outlined"
+                startIcon={<AddIcon />}
+                onClick={() => setSelectedSegment({"id": Date.now()})}
+                sx={{ mt: 2 }}
+                fullWidth
+              >
+                Add Segment
+              </Button>
         </Grid2>
             </CardContent>
         </Card>
