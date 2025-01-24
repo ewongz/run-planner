@@ -48,8 +48,8 @@ interface Segment {
     type?: "Warm Up" | "Training" | "Intervals" | "Recovery" | "Cool Down";
     measurement?: "time" | "distance";
     duration?: {
-      minutes: number;
-      seconds: number;
+      minutes: number | undefined;
+      seconds: number | undefined;
     };
     distance?: {
       value: number;
@@ -68,8 +68,8 @@ interface IntervalConfig extends Segment {
     recoveryInterval: {
         measurement: "time" | "distance";
         duration?: {
-        minutes: number;
-        seconds: number;
+        minutes: number | undefined;
+        seconds: number | undefined;
         };
         distance?: {
         value: number;
@@ -131,6 +131,11 @@ function Workout() {
   const handleCardClick = (segment: Segment) => {
     setSelectedSegment(segment)
     setModifySegment(true)
+  }
+
+  const handleAddSegment = (segment: Segment) => {
+    setSelectedSegment(segment)
+    setModifySegment(false)
   }
   
   const displayPace = (pace:string) => {
@@ -268,7 +273,7 @@ function Workout() {
       { label: "Cool Down", value: "Cool Down" }
     ];
     return (
-      <Box sx={{ width: 320, p: 3 }}>
+      <Box sx={{ p: 3 }}>
         <Stack spacing={3}>
           {/* Header with close button */}
           <Box display="flex" justifyContent="space-between" alignItems="center">
@@ -327,7 +332,7 @@ function Workout() {
                   label="Minutes"
                   variant="outlined"
                   value={duration?.minutes ?? ''}
-                  onChange={(e) => setDuration({"minutes": Number(e.target.value), "seconds": duration?.seconds ?? 0})}
+                  onChange={(e) => setDuration({"minutes": Number(e.target.value), "seconds": duration?.seconds ?? undefined})}
                 />
               </Grid2>
               <Grid2 size={6}>
@@ -337,7 +342,7 @@ function Workout() {
                   label="Seconds"
                   variant="outlined"
                   value={duration?.seconds ?? ''}
-                  onChange={(e) => setDuration({"minutes": duration?.minutes ?? 0, "seconds": Number(e.target.value)})}
+                  onChange={(e) => setDuration({"minutes": duration?.minutes ?? undefined, "seconds": Number(e.target.value)})}
                 />
               </Grid2>
             </Grid2>
@@ -411,7 +416,7 @@ function Workout() {
                       label="Minutes"
                       variant="outlined"
                       value={recoveryDuration?.minutes ?? ''}
-                      onChange={(e) => setRecoveryDuration({"minutes": Number(e.target.value), "seconds": duration?.seconds ?? 0})}
+                      onChange={(e) => setRecoveryDuration({"minutes": Number(e.target.value), "seconds": duration?.seconds ?? undefined})}
                     />
                   </Grid2>
                   <Grid2 size={6}>
@@ -421,7 +426,7 @@ function Workout() {
                       label="Seconds"
                       variant="outlined"
                       value={recoveryDuration?.seconds ?? ''}
-                      onChange={(e) => setRecoveryDuration({"minutes": duration?.minutes ?? 0, "seconds": Number(e.target.value)})}
+                      onChange={(e) => setRecoveryDuration({"minutes": duration?.minutes ?? undefined, "seconds": Number(e.target.value)})}
                     />
                   </Grid2>
                 </Grid2>
@@ -524,7 +529,12 @@ function Workout() {
         {/* Workout Timeline */}
         <Grid2 size={9}>
         <Typography variant="h6" gutterBottom>Segments</Typography>
-          <Paper sx={{ p: 2, position: "relative" ,maxHeight:250, overflow:"auto"}}>
+          <Paper sx={{
+            p: 2,
+            position: "relative",
+            maxHeight:550,
+            overflow:"auto"
+             }}>
             <Stack spacing={2}>
               {/* Segment Cards */}
               {
@@ -551,7 +561,7 @@ function Workout() {
                                   segment.distance
                                     ? `${segment.distance.value} ${segment.distance.unit}`
                                     : segment.duration
-                                    ? `${segment.duration.minutes}:${segment.duration.seconds.toString().padStart(2, "0")}`
+                                    ? `${segment.duration.minutes}:${(segment.duration.seconds ?? 0).toString().padStart(2, "0")}`
                                     : "No data available"
                                 }
                                 size="small"
@@ -591,7 +601,7 @@ function Workout() {
           <Button
                 variant="outlined"
                 startIcon={<AddIcon />}
-                onClick={() => setSelectedSegment({"id": Date.now()})}
+                onClick={() => handleAddSegment({"id": Date.now()})}
                 sx={{ mt: 2 }}
                 fullWidth
               >
