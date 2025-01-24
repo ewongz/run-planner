@@ -20,8 +20,11 @@ return (
     {value === index && (
         <Box
         component="form"
-        sx={{ m: 3,
+        sx={{ m: 8,
               p: 2,
+              display: "flex",
+              alignItems: "flex-start",
+              minHeight: "100vh"
                 // width: "25ch",
             }}
         >
