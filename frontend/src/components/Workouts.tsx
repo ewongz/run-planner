@@ -1,5 +1,5 @@
 //@ts-check
-import React, {useState} from "react";
+import React, {use, useState} from "react";
 import axios from "axios";
 import { 
     Card,
@@ -65,17 +65,6 @@ interface Segment {
 interface IntervalConfig extends Segment {
     repetitions: number;
     recoveryType: "Rest" | "Run";
-    workInterval: {
-        measurement: "time" | "distance";
-        duration?: {
-        minutes: number;
-        seconds: number;
-        };
-        distance?: {
-        value: number;
-        unit: "mi" | "km" | "m";
-        };
-    };
     recoveryInterval: {
         measurement: "time" | "distance";
         duration?: {
@@ -85,6 +74,10 @@ interface IntervalConfig extends Segment {
         distance?: {
         value: number;
         unit: "mi" | "km" | "m";
+        };
+        pace?: {
+          value: string;
+          unit: "mi" | "km";
         };
     };
 }
@@ -163,15 +156,24 @@ function Workout() {
     const [measurementType, setMeasurementType] = useState<"time" | "distance">(workoutSegment.measurement ||"time");
     const [duration, setDuration] = useState<Segment["duration"]>(workoutSegment.duration);
     const [distance, setDistance] = useState<Segment["distance"]>(workoutSegment.distance);
-    const [distanceValue, setDistanceValue] = useState<number | undefined>(workoutSegment.distance?.value)
     const [distanceUnit, setDistanceUnit] = useState<"mi" | "km" | "m">(workoutSegment.distance?.unit ?? "mi")
     const [pace, setPace] = useState<Segment["pace"]>(workoutSegment?.pace)
-    const [paceValue, setPaceValue] = useState<string>(workoutSegment.pace?.value || "")
     const [paceUnit, setPaceUnit] = useState<"mi" | "km">(workoutSegment.pace?.unit ?? "mi")
     const [notes, setNotes] = useState<string>(workoutSegment.notes || "")
     const [disableDistance, setDisableDistance] = useState<boolean>(true);
     const [recoveryMeasurementType, setRecoveryMeasurementType] = useState<"time" | "distance">("time");
-
+    const [recoveryDistance, setRecoveryDistance] = useState<IntervalConfig["recoveryInterval"]["distance"] | undefined>(
+      "recoveryInterval" in workoutSegment ? workoutSegment.recoveryInterval?.distance : undefined
+    );
+    const [recoveryDuration, setRecoveryDuration] = useState<IntervalConfig["recoveryInterval"]["duration"] | undefined>(
+      "recoveryInterval" in workoutSegment ? workoutSegment.recoveryInterval?.duration : undefined
+    );
+    const [recoveryPace, setRecoveryPace] = useState<IntervalConfig["recoveryInterval"]["pace"] | undefined>(
+      "recoveryInterval" in workoutSegment ? workoutSegment.recoveryInterval?.pace : undefined
+    );
+    const [repetitions, setRepetitions] = useState<IntervalConfig["repetitions"] | undefined>(
+      "repetitions" in workoutSegment ? workoutSegment?.repetitions : undefined
+    );
     const validateSegment = (): boolean => {
       if (measurementType === "time") {
         if (duration?.minutes === undefined || duration?.seconds === undefined) {
@@ -179,11 +181,14 @@ function Workout() {
           return false;
         }
       } else {
-        if (distanceValue === undefined) {
+        if (distance?.value === undefined) {
           return false;
         }
       }
-      if (!paceValue.trim()) return false;
+      if (!pace?.value.trim()) {
+        alert("require pace")
+        return false;
+      } 
       if (segmentType === null) return false;
       return true;
     };
@@ -195,11 +200,14 @@ function Workout() {
         newSegment = {
           id,
           ...(segmentType && {"type": segmentType }),
-          ...(measurementType && {"measurement": measurementType}),
           ...(duration && {"duration": duration }),
           ...(distance && {"distance": distance }),
           ...(pace && {"pace": pace}),
           ...(notes && {"notes": notes}),
+          ...(repetitions && {"repetitions": repetitions}),
+          ...(recoveryDuration && {"recoveryInterval": {"duration": recoveryDuration}}),
+          ...(recoveryDistance && {"recoveryInterval": {"distance": recoveryDistance}}),
+          ...(recoveryPace && {"recoveryInterval": {"pace": recoveryPace}})
         };
         if (update === false) {
           console.log("adding new segment:", newSegment)
@@ -208,18 +216,15 @@ function Workout() {
           console.log("updating existing segment:", newSegment)
           updateSegment(newSegment);
         }
-        
-      } else {
-        alert("Missing required fields")
-      }
-      setSelectedSegment(null);
+        setSelectedSegment(null);
+      } 
     };
     
     const handleMeasurementChange = (_: React.MouseEvent<HTMLElement>, newMeasurementType: "time" | "distance") => {
       if (newMeasurementType !== null) {
         setMeasurementType(newMeasurementType);      // Reset the other type's values when switching
         if (newMeasurementType === 'time') {
-          setDistanceValue(undefined); // Clear distance when switching to time
+          setDistance(undefined); // Clear distance when switching to time
         } else {
           setDuration(undefined);
         }
@@ -239,14 +244,20 @@ function Workout() {
       }
     }
 
-    const handlePace = (p: string) => {
-      setPaceValue(p)
-      setPace({"value": p, "unit": paceUnit})
+    const handlePace = (p: string, recovery: boolean) => {
+      if (recovery) {
+        setRecoveryPace({"value": p, "unit": paceUnit})
+      } else {
+        setPace({"value": p, "unit": paceUnit})
+      }
     }
 
-    const handleDistance = (distance: number) => {
-      setDistanceValue(distance)
-      setDistance({"value": distance, "unit": paceUnit})
+    const handleDistance = (distance: number, recovery:boolean) => {
+      if (recovery) {
+        setRecoveryDistance({"value": distance, "unit": paceUnit})
+      } else {
+        setDistance({"value": distance, "unit": paceUnit})
+      }
     }
 
     const options = [
@@ -286,6 +297,8 @@ function Workout() {
               type="number"
               label="Number of Repetitions"
               variant="outlined"
+              value={repetitions}
+              onChange={(e) => setRepetitions(Number(e.target.value))}
               />
               <Divider />
               <Typography variant="subtitle1">Work Interval</Typography>
@@ -336,8 +349,8 @@ function Workout() {
                   type="number"
                   label="Distance"
                   variant="outlined"
-                  value={distanceValue ?? ''}
-                  onChange={(e) => handleDistance(Number(e.target.value))}
+                  value={distance?.value ?? ''}
+                  onChange={(e) => handleDistance(Number(e.target.value), false)}
                 />
               </Grid2>
               <Grid2 size={5}>
@@ -356,7 +369,7 @@ function Workout() {
           {/* Pace selection */}
           <FormControl fullWidth>
             <InputLabel>Target Pace</InputLabel>
-            <Select label="Target Pace" defaultValue="easy" value={paceValue} onChange={(e) => handlePace(e.target.value)} >
+            <Select label="Target Pace" defaultValue="easy" value={pace?.value} onChange={(e) => handlePace(e.target.value, false)} >
               <MenuItem value="easy">Easy (9:00-10:00 /mi)</MenuItem>
               <MenuItem value="moderate">Moderate (8:00-9:00 /mi)</MenuItem>
               <MenuItem value="hard">Hard (7:00-8:00 /mi)</MenuItem>
@@ -397,6 +410,8 @@ function Workout() {
                       type="number"
                       label="Minutes"
                       variant="outlined"
+                      value={recoveryDuration?.minutes ?? ''}
+                      onChange={(e) => setRecoveryDuration({"minutes": Number(e.target.value), "seconds": duration?.seconds ?? 0})}
                     />
                   </Grid2>
                   <Grid2 size={6}>
@@ -405,6 +420,8 @@ function Workout() {
                       type="number"
                       label="Seconds"
                       variant="outlined"
+                      value={recoveryDuration?.seconds ?? ''}
+                      onChange={(e) => setRecoveryDuration({"minutes": duration?.minutes ?? 0, "seconds": Number(e.target.value)})}
                     />
                   </Grid2>
                 </Grid2>
@@ -416,6 +433,8 @@ function Workout() {
                       type="number"
                       label="Distance"
                       variant="outlined"
+                      value={recoveryDistance?.value ?? ''}
+                      onChange={(e) => handleDistance(Number(e.target.value), true)}
                     />
                   </Grid2>
                   <Grid2 size={5}>
@@ -434,7 +453,7 @@ function Workout() {
               {!disableDistance && (
               <FormControl fullWidth>
               <InputLabel>Target Pace</InputLabel>
-              <Select label="Target Pace" defaultValue="easy">
+              <Select label="Target Pace" defaultValue="easy" value={recoveryPace?.value} onChange={(e) => handlePace(e.target.value, true)} >
                 <MenuItem value="easy">Easy (9:00-10:00 /mi)</MenuItem>
                 <MenuItem value="moderate">Moderate (8:00-9:00 /mi)</MenuItem>
                 <MenuItem value="hard">Hard (7:00-8:00 /mi)</MenuItem>
@@ -515,7 +534,14 @@ function Workout() {
                       <CardContent>
                         <Box display="flex" justifyContent="space-between" alignItems="center">
                           <Box>
-                            <Typography variant="subtitle1">{segment.type}</Typography>
+                            {'repetitions' in segment && segment.repetitions &&(
+                              <Typography variant="subtitle1">
+                                {segment.type} (Repeat {segment.repetitions}x)
+                              </Typography>
+                            )}
+                            {!('repetitions' in segment) && (
+                              <Typography variant="subtitle1">{segment.type}</Typography>
+                            )}
                             <Typography variant="body2" color="text.secondary">
                               {segment.notes}
                             </Typography>
