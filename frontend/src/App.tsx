@@ -87,7 +87,8 @@ function App() {
         justifyContent: "center",
         bgcolor: "background.default",
         color: "text.primary",
-        p: 3
+        p: 3,
+        m: 5
       }}
     > 
         {/* Pace-calculator"*/}
