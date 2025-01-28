@@ -58,7 +58,7 @@ function App() {
             }}
             >
               <Tab label="Calculator" />
-              <Tab label="Workouts" />
+              <Tab label="Calendar" />
           </Tabs>
           <FormControl sx={{ p:2, m:1, minWidth:25 }}>
             {/* Switch between themes */}
@@ -97,7 +97,7 @@ function App() {
         </TabPanel>
         {/* Workout Builder"*/}
         <TabPanel value={value} index={1}>
-          <Workouts />
+          {/* <Calendar /> */}
         </TabPanel>
     </Box>
     </ThemeProvider>
