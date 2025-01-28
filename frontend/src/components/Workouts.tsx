@@ -39,7 +39,7 @@ import {
 
 // Types and interfaces for our component
 
-type PaceUnit = "mi" | "km";
+
 type WorkoutType = "Warm Up" | "Training" | "Intervals" | "Recovery" | "Cool Down";
 type DistanceUnit = "mi" | "km" | "m"
 
@@ -82,6 +82,17 @@ interface IntervalConfig extends Segment {
     };
 }
 
+interface WorkoutPace {
+  "Percentage of Pace": number;
+  "Designation": string;
+  "Pace": string;
+}
+
+interface WorkoutBuilderProps {
+  workoutPaces: WorkoutPace[];
+  paceUnit: "mi" | "km";
+}
+
 // Pace conversion utilities
 const paceUtils = {
     convertPace: {
@@ -103,13 +114,11 @@ const paceUtils = {
   };
 
 
-function Workout() {
+function Workout({ workoutPaces, paceUnit }: WorkoutBuilderProps) {
   const [workoutName, setWorkoutName] = useState<string>("");
   const [segments, setSegments] = useState<(Segment | IntervalConfig)[]>([]);
-  const [paceUnit, setPaceUnit] = useState<string>("mi");
   const [selectedSegment, setSelectedSegment] = useState<Segment | IntervalConfig | null>(null);
   const [modifySegment, setModifySegment] = useState<boolean>(false);
-
   const addSegment = (segment: Segment | IntervalConfig): void => {
     console.log(segment)
     setSegments(prevSegments => [...prevSegments, segment]);
@@ -139,33 +148,16 @@ function Workout() {
     setSelectedSegment(segment)
     setModifySegment(false)
   }
-  
-  const displayPace = (pace:string) => {
-    if (!pace) return "";
-    switch (paceUnit) {
-      case "minPerKm":
-        return `${paceUtils.convertPace.toMinPerKm(pace)} /km`;
-      case "mph":
-        return `${paceUtils.convertPace.toMPH(pace)} mph`;
-      default:
-        return `${pace} /mi`;
-    }
-  };
-
-  const handlePaceUnitChange = (event: SelectChangeEvent): void => {
-    setPaceUnit(event.target.value as PaceUnit);
-  };
 
   // Component for the configuration panel
-  const SegmentConfig: React.FC<{ workoutSegment: Segment | IntervalConfig; update: boolean}> = ({ workoutSegment, update }) => {
+  const SegmentConfig: React.FC<{ workoutSegment: Segment | IntervalConfig; update: boolean; paceUnit: "mi" | "km"}> = ({ workoutSegment, update }) => {
     const id = (workoutSegment.id || Date.now());
     const [segmentType, setSegmentType] = useState<Segment["type"]>(workoutSegment.type);
     const [measurementType, setMeasurementType] = useState<"time" | "distance">(workoutSegment.measurement ||"time");
     const [duration, setDuration] = useState<Segment["duration"]>(workoutSegment.duration);
-    const [distance, setDistance] = useState<Segment["distance"]>(workoutSegment.distance);
+    const [distance, setDistance] = useState<Segment["distance"] | undefined>(workoutSegment.distance);
     const [distanceUnit, setDistanceUnit] = useState<"mi" | "km" | "m">(workoutSegment.distance?.unit ?? "mi")
     const [pace, setPace] = useState<Segment["pace"]>(workoutSegment?.pace)
-    const [paceUnit, setPaceUnit] = useState<"mi" | "km">(workoutSegment.pace?.unit ?? "mi")
     const [notes, setNotes] = useState<string>(workoutSegment.notes || "")
     const [disableDistance, setDisableDistance] = useState<boolean>(true);
     const [recoveryMeasurementType, setRecoveryMeasurementType] = useState<"time" | "distance">("time");
@@ -266,11 +258,12 @@ function Workout() {
       }
     }
 
-    const handleDistance = (distance: number, recovery:boolean) => {
-      if (recovery) {
-        setRecoveryDistance({"value": distance, "unit": paceUnit})
-      } else {
-        setDistance({"value": distance, "unit": paceUnit})
+    const handleDistance = (distance: number | undefined, recovery:boolean, unit: "mi" | "km" | "m") => {
+      setDistanceUnit(unit)
+      if (distance && recovery) {
+        setRecoveryDistance({"value": distance, "unit": unit})
+      } else if (distance) {
+        setDistance({"value": distance, "unit": unit})
       }
     }
 
@@ -364,13 +357,13 @@ function Workout() {
                   label="Distance"
                   variant="outlined"
                   value={distance?.value ?? ''}
-                  onChange={(e) => handleDistance(Number(e.target.value), false)}
+                  onChange={(e) => handleDistance(Number(e.target.value), false, distanceUnit)}
                 />
               </Grid2>
               <Grid2 size={5}>
                 <FormControl fullWidth>
                   <InputLabel>Unit</InputLabel>
-                  <Select label="Unit" defaultValue="mi" value={distanceUnit} onChange={(e) => setDistanceUnit(e.target.value as DistanceUnit)}>
+                  <Select label="Unit" defaultValue="mi" value={distanceUnit} onChange={(e) => handleDistance(distance?.value ?? undefined, false, e.target.value as DistanceUnit)}>
                     <MenuItem value="mi">Miles</MenuItem>
                     <MenuItem value="km">Kilometers</MenuItem>
                     <MenuItem value="m">Meters</MenuItem>
@@ -384,11 +377,14 @@ function Workout() {
           <FormControl fullWidth>
             <InputLabel>Target Pace</InputLabel>
             <Select label="Target Pace" value={pace?.value} onChange={(e) => handlePace(e.target.value, false)} >
-              <MenuItem value="easy">Easy (9:00-10:00 /mi)</MenuItem>
-              <MenuItem value="moderate">Moderate (8:00-9:00 /mi)</MenuItem>
-              <MenuItem value="hard">Hard (7:00-8:00 /mi)</MenuItem>
-              <MenuItem value="sprint">Sprint (6:00-7:00 /mi)</MenuItem>
-              <MenuItem value="custom">Custom</MenuItem>
+              {
+                workoutPaces.map((pace, index) => (
+                  <MenuItem key={index} value={pace["Pace"]}>
+                    {`${pace["Percentage of Pace"]}% ${pace["Designation"]} ${pace["Pace"]}`}
+                  </MenuItem>
+                )
+                )
+              }
             </Select>
           </FormControl>
 
@@ -448,13 +444,13 @@ function Workout() {
                       label="Distance"
                       variant="outlined"
                       value={recoveryDistance?.value ?? ''}
-                      onChange={(e) => handleDistance(Number(e.target.value), true)}
+                      onChange={(e) => handleDistance(Number(e.target.value), true, distanceUnit)}
                     />
                   </Grid2>
                   <Grid2 size={5}>
                     <FormControl fullWidth>
                       <InputLabel>Unit</InputLabel>
-                      <Select label="Unit" defaultValue="mi">
+                      <Select label="Unit" defaultValue="mi" value={distanceUnit}>
                         <MenuItem value="mi">Miles</MenuItem>
                         <MenuItem value="km">Kilometers</MenuItem>
                         <MenuItem value="m">Meters</MenuItem>
@@ -525,7 +521,6 @@ function Workout() {
                     <InputLabel>Pace Display Unit</InputLabel>
                     <Select
                         value={paceUnit}
-                        onChange={handlePaceUnitChange}
                         label="Pace Display Unit"
                     >
                         <MenuItem value="minPerMile">mi</MenuItem>
@@ -679,7 +674,7 @@ function Workout() {
               open={selectedSegment !== null}
               onClose={() => setSelectedSegment(null)}
             >
-              {selectedSegment && <SegmentConfig workoutSegment={selectedSegment} update={modifySegment} />}
+              {selectedSegment && <SegmentConfig workoutSegment={selectedSegment} update={modifySegment} paceUnit={paceUnit}/>}
             </Drawer>
           </Paper>
           <Button

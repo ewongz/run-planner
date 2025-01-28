@@ -3,12 +3,32 @@ import React, {useState} from "react";
 import axios from "axios";
 import { Button, FormControl, TextField,
          MenuItem, Switch, Stack, Typography,
+         InputLabel,Select,
         Divider } from '@mui/material';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import { handleTimeInput } from "../utils/inputValidation";
 import PaceTable from "./PaceTable";
 import Workout from "./Workouts"
 
+type PaceUnit = "mi" | "km";
+
+const DisplayVdot: React.FC<{ vdot: string }> = ({ vdot }) => {
+  return(
+  <Typography
+    component="a"
+    href="https://support.vdoto2.com/v-o2-faq/"
+    target="_blank"
+    rel="noopener noreferrer"
+    color="primary"
+    variant="h6"
+    sx={{ textDecoration: 'none',
+          '&:hover': { textDecoration: 'underline' },
+        }}
+    >
+    {`${vdot}`}
+  </Typography>
+  )
+}
 
 const emptyWorkoutPaces = () => 
   [
@@ -59,7 +79,7 @@ function Calculator() {
   const [lastUpdated, setLastUpdated] = useState<string>("");
   const [pace, setPace] = useState<string>("");
   const [time, setTime] = useState<string>("");
-  const [isMiles, setIsMiles] = useState<boolean>(false);
+  const [paceUnit, setPaceUnit] = useState<"mi" | "km">("mi");
   const [raceDistance, setRaceDistance] = useState<string>("Marathon");
   const [error, setError] = useState<string>("");
   const [workoutPaces, setWorkoutPaces] = useState<{ "Percentage of Pace": number; Designation: string; Pace: string; }[]>(emptyWorkoutPaces);
@@ -92,7 +112,7 @@ function Calculator() {
   };
 
   const MetersToMiles = (distance:number) => {
-    if (isMiles) {
+    if (paceUnit === "mi") {
       return distance * 0.000621371
     } else {
       return distance * 0.001
@@ -100,7 +120,7 @@ function Calculator() {
   }
 
   const MilesToMeters = (distance:number) => {
-    if (isMiles) {
+    if (paceUnit === "mi") {
       return distance / 0.000621371
     } else {
       return distance / 0.001
@@ -146,13 +166,7 @@ function Calculator() {
       mappedDistance = distanceMapping[raceDistance as keyof typeof distanceMapping]
       encodedDistance = encodeURIComponent(mappedDistance)
     }
-    let unit;
-    if (isMiles) {
-      unit = "mi";
-    } else {
-      unit = "km";
-    }
-    axios.get(`http://127.0.0.1:8000/race_time?pace=${encodedPace}&unit=${unit}&distance=${encodedDistance}`)
+    axios.get(`http://127.0.0.1:8000/race_time?pace=${encodedPace}&unit=${paceUnit}&distance=${encodedDistance}`)
     .then(
       response => {
         const timeData = `${response.data.time}`
@@ -226,31 +240,6 @@ function Calculator() {
     setLastUpdated("pace")
   }
 
-  const switchUnit = () => {
-    setIsMiles((prevState) => !prevState)
-    let unit;
-    if (isMiles) {
-      unit = "km";
-    } else {
-      unit = "mi";
-    }
-    if (pace) {
-      const encodedPace = encodeURIComponent(pace)
-      axios.get(`http://127.0.0.1:8000/convert_pace?pace=${encodedPace}&target_unit=${unit}`)
-      .then(
-        response => {
-          const paceData = `${response.data.pace}`
-          setPace(paceData);
-          fetchPacePercentages(paceData);
-        }
-      )
-      .catch(err => {
-        console.error("Error fetching data:", err);
-        setError("Failed to switch units")
-      });
-    }
-  };
-
   const units = [
     {
       value: 'mi',
@@ -303,7 +292,8 @@ function Calculator() {
     'Other': 0
   }
 
-  return (   
+  return (
+        <Stack spacing={10}>
         <Stack direction="row" spacing={8} sx={{alignItems: "center", justifyContent:"space-evenly"}}>
             <Stack spacing={2}>
               {/* Dropdown to select a race type */}
@@ -389,19 +379,14 @@ function Calculator() {
                   </TextField>
                 </FormControl>
                 {/* Switch between mi/km */}
-                <Stack direction="row" spacing={0.02} sx={{ alignItems: "center"}}>
-                  <Typography variant="caption" color="text.primary" sx={{ fontSize: "15px"}}>
-                    mi
-                  </Typography>
-                  <Switch 
-                    defaultChecked
-                    onChange={switchUnit}
-                    size="small"
-                  />
-                  <Typography variant="caption" color="text.primary" sx={{ fontSize: "15px"}}>
-                    km
-                  </Typography>
-                </Stack>
+                <FormControl fullWidth>
+                  <InputLabel>Unit</InputLabel>
+                  <Select label="Unit" defaultValue="mi" value={paceUnit} onChange={(e) => setPaceUnit(e.target.value as PaceUnit)}>
+                    <MenuItem value="mi">Miles</MenuItem>
+                    <MenuItem value="km">Kilometers</MenuItem>
+                  </Select>
+                </FormControl>
+                
               </Stack>
               
               <Stack direction="row" spacing={1} sx={{ alignItems: "center"}}>
@@ -427,26 +412,18 @@ function Calculator() {
 
               {/* Error Message */}
               {error && <p style={{ color: "red" }}>{error}</p>}
-              {/* VDOT */}
-              <Typography
-                component="a"
-                href="https://support.vdoto2.com/v-o2-faq/"
-                target="_blank"
-                rel="noopener noreferrer"
-                color="primary"
-                variant="h6"
-                sx={{ textDecoration: 'none',
-                      '&:hover': { textDecoration: 'underline' },
-                    }}
-              >
-                {`${vdot}`}
-              </Typography>
-
+              <DisplayVdot vdot={vdot}/>
               </Stack>
               {/* Workout Paces*/}
               <PaceTable workoutPaces={workoutPaces}/>
             </Stack>
+            <Divider/>
+            <Workout workoutPaces={workoutPaces} paceUnit={paceUnit}/>
+            </Stack>
   );
 }
+
+
+
 
 export default Calculator;
