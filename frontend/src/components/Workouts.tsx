@@ -19,7 +19,6 @@ import {
     IconButton,
     Container,
     Paper,
-    SelectChangeEvent,
     Stack,
     ToggleButtonGroup,
     ToggleButton,
@@ -89,6 +88,7 @@ interface WorkoutBuilderProps {
 
 function Workout({ workoutPaces, paceUnit }: WorkoutBuilderProps) {
   const [workoutName, setWorkoutName] = useState<string>("");
+  const [description, setDescription] = useState<string>("");
   const [segments, setSegments] = useState<(Segment | IntervalConfig)[]>([]);
   const [selectedSegment, setSelectedSegment] = useState<Segment | IntervalConfig | null>(null);
   const [modifySegment, setModifySegment] = useState<boolean>(false);
@@ -501,6 +501,19 @@ function Workout({ workoutPaces, paceUnit }: WorkoutBuilderProps) {
                     </FormControl>
                 </Grid2>
                 </Grid2>
+              <Grid2 container spacing={3} alignItems="center" sx={{ mb: 3 }}>
+                <Grid2 size={12}>
+                  <TextField
+                    fullWidth
+                    label="Description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    variant="outlined"
+                    multiline
+                    minRows={3}
+                  />
+                </Grid2>
+              </Grid2>
         {/* Workout Timeline */}
         <Grid2 size={9}>
         <Typography variant="h6" gutterBottom>Segments</Typography>
