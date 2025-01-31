@@ -25,17 +25,11 @@ import {
     ToggleButton,
     Divider
   } from "@mui/material";
-  import { Add as AddIcon, Delete as DeleteIcon, Save as SaveIcon } from "@mui/icons-material";
-
-import { handleTimeInput } from "../utils/inputValidation";
-import { ThemeProvider, PaletteMode} from "@mui/material";
+  import { Add as AddIcon, Delete as DeleteIcon} from "@mui/icons-material";
 import {
     Close,
-    Add,
-    PlayArrow,
-    Save,
-    ChevronRight
   } from "@mui/icons-material";
+import SaveButton from "./SaveButton"
 
 // Types and interfaces for our component
 
@@ -93,27 +87,6 @@ interface WorkoutBuilderProps {
   paceUnit: "mi" | "km";
 }
 
-// Pace conversion utilities
-const paceUtils = {
-    convertPace: {
-      toMinPerKm: (minPerMile:string) => {
-        const [mins, secs] = minPerMile.split(":").map(Number);
-        const totalSeconds = (mins * 60 + secs) / 1.60934;
-        return `${Math.floor(totalSeconds / 60)}:${String(Math.round(totalSeconds % 60)).padStart(2, "0")}`;
-      },
-      toMPH: (minPerMile:string) => {
-        const [mins, secs] = minPerMile.split(":").map(Number);
-        const totalHours = (mins + secs / 60) / 60;
-        return `${(1 / totalHours).toFixed(1)}`;
-      }
-    },
-    validatePaceFormat: (pace: string) => {
-      const paceRegex = /^([0-9]{1,2}):([0-5][0-9])$/;
-      return paceRegex.test(pace);
-    }
-  };
-
-
 function Workout({ workoutPaces, paceUnit }: WorkoutBuilderProps) {
   const [workoutName, setWorkoutName] = useState<string>("");
   const [segments, setSegments] = useState<(Segment | IntervalConfig)[]>([]);
@@ -138,6 +111,10 @@ function Workout({ workoutPaces, paceUnit }: WorkoutBuilderProps) {
       )
     );
   };
+
+  const saveWorkout = () => {
+    console.log("Workout saved:", segments)
+  }
 
   const handleCardClick = (segment: Segment) => {
     setSelectedSegment(segment)
@@ -500,12 +477,14 @@ function Workout({ workoutPaces, paceUnit }: WorkoutBuilderProps) {
 
   return (
     <Container>
-        <Card>
+        <Card sx={{p: 4}}>
             <CardContent>
-                <CardHeader
-                  title="Workout Builder"
-                />
-                {/* Workout Name and Pace Unit Selection */}
+              <Grid2 container spacing={3} alignItems="center" sx={{ mb: 3 }}>
+                <Grid2 size={8}>
+                  <Typography variant="h5">Workout Builder</Typography>
+                </Grid2>
+              </Grid2>
+                {/* Workout Name and Save Icon */}
                 <Grid2 container spacing={3} sx={{ mb: 4 }}>
                 <Grid2 size={8}>
                     <TextField
@@ -518,15 +497,7 @@ function Workout({ workoutPaces, paceUnit }: WorkoutBuilderProps) {
                 </Grid2>
                 <Grid2 size={4}>
                     <FormControl fullWidth>
-                    <InputLabel>Pace Display Unit</InputLabel>
-                    <Select
-                        value={paceUnit}
-                        label="Pace Display Unit"
-                    >
-                        <MenuItem value="minPerMile">mi</MenuItem>
-                        <MenuItem value="minPerKm">km</MenuItem>
-                        <MenuItem value="mph">mph</MenuItem>
-                    </Select>
+                      <SaveButton onSave={saveWorkout} />
                     </FormControl>
                 </Grid2>
                 </Grid2>
