@@ -75,9 +75,12 @@ const emptyWorkoutPaces = () =>
 ]
 
 
-function Calculator() {
+function Calculator({ pace, setPace, fetchPace, resetPace, formatPace}:
+   {pace: string,
+    setPace: (pace: string) => void,
+    fetchPace: (time: string, raceDistance: string, otherDistance: string, paceUnit: "mi" | "km") => Promise<string | null>
+    resetPace: Function, formatPace: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void}) {
   const [lastUpdated, setLastUpdated] = useState<string>("");
-  const [pace, setPace] = useState<string>("");
   const [time, setTime] = useState<string>("");
   const [paceUnit, setPaceUnit] = useState<"mi" | "km">("mi");
   const [raceDistance, setRaceDistance] = useState<string>("Marathon");
@@ -92,32 +95,30 @@ function Calculator() {
     setError(""); // Clear previous errors
     setTime("");
     setRaceDistance("");
-    setPace("");
+    resetPace();
     setLastUpdated("");
     setWorkoutPaces(emptyWorkoutPaces);
     setVdot("");
     setOtherDistance("");
   };
 
-  const calculate = () => {
-    if (lastUpdated === "time") {
-      fetchPace();
-    } else if (lastUpdated === "pace") {
-      fetchTime();
-    } else if (pace === "") {
-      fetchPace();
-    } else if (time === "") {
-      fetchTime();
-    }
+  const calculate = async() => {
+    if (lastUpdated === "time" || pace === "") {
+      const newPace = await fetchPace(time, raceDistance, otherDistance, paceUnit)
+      if (newPace !== null){
+        setPace(newPace);
+        fetchPacePercentages(newPace);
+        fetchVdot(time);
+      }
+    } else if (lastUpdated === "pace" || time === "") {
+      const newTime = await fetchTime();
+      if (newTime !== null){
+        setTime(newTime);
+        fetchPacePercentages(pace);
+        fetchVdot(newTime);
+      }
+    } 
   };
-
-  const MetersToMiles = (distance:number) => {
-    if (paceUnit === "mi") {
-      return distance * 0.000621371
-    } else {
-      return distance * 0.001
-    }
-  }
 
   const MilesToMeters = (distance:number) => {
     if (paceUnit === "mi") {
@@ -127,36 +128,8 @@ function Calculator() {
     }
   }
 
-  // Calculate Pace
-  const fetchPace = () => {
-    setError(""); // Clear previous errors
-    const encodedTime = encodeURIComponent(time)
-    let mappedDistance;
-    let encodedDistance;
-    if (raceDistance === "Other") {
-      encodedDistance = encodeURIComponent(Number(otherDistance))
-    } else {
-      mappedDistance = distanceMapping[raceDistance as keyof typeof distanceMapping]
-      encodedDistance = encodeURIComponent(MetersToMiles(mappedDistance))
-    }
-    axios.get(`http://127.0.0.1:8000/race_pace?finish_time=${encodedTime}&distance=${encodedDistance}`)
-    .then(
-      response => {
-        const paceData = `${response.data.pace}`
-        setPace(paceData); 
-        fetchPacePercentages(paceData);
-        fetchVdot(time);
-      }
-    )
-    .catch(err => {
-      console.error("Error fetching data:", err);
-      setError("Failed to fetch pace.")
-    });
-  };
-
   // Calculate Time
-  const fetchTime = () => {
-    setError(""); // Clear previous errors
+  const fetchTime = async () => {
     const encodedPace = encodeURIComponent(pace)
     let mappedDistance;
     let encodedDistance;
@@ -166,20 +139,13 @@ function Calculator() {
       mappedDistance = distanceMapping[raceDistance as keyof typeof distanceMapping]
       encodedDistance = encodeURIComponent(mappedDistance)
     }
-    axios.get(`http://127.0.0.1:8000/race_time?pace=${encodedPace}&unit=${paceUnit}&distance=${encodedDistance}`)
-    .then(
-      response => {
-        const timeData = `${response.data.time}`
-        setTime(timeData);
-        fetchPacePercentages(pace);
-        fetchVdot(timeData);
-      }
-    )
-    .catch(err => {
-      console.error("Error fetching data:", err);
-      setError("Failed to fetch time")
-    });
-  }
+    try {
+      const response = await axios.get(`http://127.0.0.1:8000/race_time?pace=${encodedPace}&unit=${paceUnit}&distance=${encodedDistance}`)
+      return response.data.time
+    } catch (err) {
+      console.error("Error fetch data:", err);
+    }
+  };
 
   const fetchVdot = (time: string) => {
     setError(""); // Clear previous errors
@@ -235,10 +201,7 @@ function Calculator() {
     setLastUpdated("time")
   }
 
-  const formatPace = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPace(handleTimeInput(e))
-    setLastUpdated("pace")
-  }
+
 
   const units = [
     {
