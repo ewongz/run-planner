@@ -1,9 +1,7 @@
 //@ts-check
-import React, {use, useState} from "react";
-import axios from "axios";
+import React, {useState} from "react";
 import { 
     Card,
-    CardHeader,
     CardContent,
     Chip,
     Drawer,
@@ -22,12 +20,32 @@ import {
     Stack,
     ToggleButtonGroup,
     ToggleButton,
-    Divider
+    Divider,
+    Tooltip
   } from "@mui/material";
-  import { Add as AddIcon, Delete as DeleteIcon} from "@mui/icons-material";
+  import { Add as AddIcon, Delete as DeleteIcon, DragIndicator as DragIcon} from "@mui/icons-material";
 import {
     Close,
   } from "@mui/icons-material";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import {
+  CSS,
+} from '@dnd-kit/utilities';
 import SaveButton from "./SaveButton"
 
 // Types and interfaces for our component
@@ -112,6 +130,26 @@ function Workout({ workoutPaces, paceUnit }: WorkoutBuilderProps) {
     );
   };
 
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      setSegments((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over?.id);
+
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
   const saveWorkout = () => {
     console.log("Workout saved:", segments)
   }
@@ -125,6 +163,176 @@ function Workout({ workoutPaces, paceUnit }: WorkoutBuilderProps) {
     setSelectedSegment(segment)
     setModifySegment(false)
   }
+
+  const isPaceDefined = !workoutPaces.length || !workoutPaces[0].Pace
+
+  // Sortable Item Component
+  const SortableSegmentCard: React.FC<{ segment: Segment | IntervalConfig }> = ({ segment }) => {
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+      isDragging,
+    } = useSortable({ id: segment.id });
+
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+      opacity: isDragging ? 0.5 : 1,
+    };
+
+    return (
+      <Card 
+        ref={setNodeRef} 
+        style={style} 
+        onClick={() => handleCardClick(segment)} 
+        elevation={isDragging ? 8 : 3}
+        sx={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+      >
+        <CardContent sx={{ position: "relative" }}>
+          <Box display="flex" alignItems="center">
+            <IconButton
+              {...attributes}
+              {...listeners}
+              size="small"
+              sx={{ 
+                mr: 1, 
+                cursor: 'grab',
+                color: 'action.active',
+                '&:hover': {
+                  color: 'primary.main',
+                  backgroundColor: 'action.hover'
+                },
+                '&:active': {
+                  cursor: 'grabbing'
+                }
+              }}
+              onClick={(e) => e.stopPropagation()}
+              title="Drag to reorder"
+            >
+              <DragIcon />
+            </IconButton>
+            <Box flexGrow={1}>
+              {'repetitions' in segment && segment.repetitions ? (
+                <Typography variant="subtitle1">
+                  {segment.type} (Repeat {segment.repetitions}x)
+                </Typography>
+              ): (
+                <Typography variant="subtitle1">{segment.type}</Typography>
+              )}
+              <Typography variant="body2" color="text.secondary">
+                {segment.notes}
+              </Typography>
+              {'repetitions' in segment && segment.repetitions? (
+                <Box margin={1} padding={1} justifyContent="space-between" alignItems="center">
+                  <Stack spacing={2}>
+                <Card>
+                  <CardContent>
+                    <Stack direction="row" spacing={1} mt={1}>
+                      <Chip
+                        label={
+                          segment.distance
+                            ? `${segment.distance.value} ${segment.distance.unit}`
+                            : segment.duration
+                            ? `${segment.duration.minutes}:${(segment.duration.seconds ?? 0).toString().padStart(2, "0")}`
+                            : "No data available"
+                        }
+                        size="small"
+                        color="primary"
+                        variant="outlined"
+                      />
+                      <Chip
+                        label={
+                          segment.pace
+                            ? `${segment.pace.value} /${segment.pace.unit}`
+                            : "No data available"
+                        }
+                        size="small"
+                        color="success"
+                        variant="outlined"
+                      />
+                    </Stack>
+                  </CardContent>
+                </Card>
+                <Card>
+                <CardContent>
+                  <Stack direction="row" spacing={1} mt={1}>
+                    <Chip
+                      label={
+                        'recoveryInterval' in segment && segment.recoveryInterval?.distance
+                          ? `${segment.recoveryInterval.distance.value} ${segment.recoveryInterval.distance.unit}`
+                          : 'recoveryInterval' in segment && segment.recoveryInterval?.duration
+                          ? `${segment.recoveryInterval.duration.minutes}:${(segment.recoveryInterval.duration.seconds ?? 0).toString().padStart(2, "0")}`
+                          : "No data available"
+                      }
+                      size="small"
+                      color="primary"
+                      variant="outlined"
+                    />
+                    <Chip
+                      label={
+                        segment.recoveryInterval.pace
+                          ? `${segment.recoveryInterval.pace.value} /${segment.recoveryInterval.pace.unit}`
+                          : "No data available"
+                      }
+                      size="small"
+                      color="success"
+                      variant="outlined"
+                    />
+                  </Stack>
+                </CardContent>
+              </Card>
+              </Stack>
+              </Box>
+              ): (
+                <Stack direction="row" spacing={1} mt={1}>
+                <Chip
+                  label={
+                    segment.distance
+                      ? `${segment.distance.value} ${segment.distance.unit}`
+                      : segment.duration
+                      ? `${segment.duration.minutes}:${(segment.duration.seconds ?? 0).toString().padStart(2, "0")}`
+                      : "No data available"
+                  }
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                />
+                <Chip
+                  label={
+                    segment.pace
+                      ? `${segment.pace.value} /${segment.pace.unit}`
+                      : "No data available"
+                  }
+                  size="small"
+                  color="success"
+                  variant="outlined"
+                />
+              </Stack>
+              )}
+            </Box>
+          </Box>
+          <IconButton aria-label="delete"
+            sx={{
+              position: "absolute",
+              bottom:3,
+              right:8
+            }}
+            onClick={
+              (e) => {
+                e.stopPropagation();
+                removeSegment(e, segment.id)
+              }
+            }
+          >
+              <DeleteIcon fontSize="small"/>
+          </IconButton>
+        </CardContent>
+      </Card>
+    );
+  };
 
   // Component for the configuration panel
   const SegmentConfig: React.FC<{ workoutSegment: Segment | IntervalConfig; update: boolean; paceUnit: "mi" | "km"}> = ({ workoutSegment, update }) => {
@@ -219,7 +427,7 @@ function Workout({ workoutPaces, paceUnit }: WorkoutBuilderProps) {
       }
     };
     const handleRecoveryOptions = (recoveryType: string): void => {
-      if (recoveryType != "run") {
+      if (recoveryType !== "run") {
         setDisableDistance(true)
         setRecoveryMeasurementType("time")
       } else {
@@ -251,6 +459,8 @@ function Workout({ workoutPaces, paceUnit }: WorkoutBuilderProps) {
       { label: "Recovery", value: "Recovery" },
       { label: "Cool Down", value: "Cool Down" }
     ];
+
+    
     return (
       <Box sx={{ width:320, p: 3 }}>
         <Stack spacing={3}>
@@ -264,7 +474,7 @@ function Workout({ workoutPaces, paceUnit }: WorkoutBuilderProps) {
 
           {/* Segment type selection */}
           <FormControl fullWidth>
-          <InputLabel>Segment Type</InputLabel>
+          <InputLabel>Segment Type:</InputLabel>
             <Select value={segmentType} onChange={(e) => setSegmentType(e.target.value as WorkoutType)} label="Segment Type">
               {options.map((option) => (
                 <MenuItem key={option.label} value={option.value}>
@@ -523,134 +733,22 @@ function Workout({ workoutPaces, paceUnit }: WorkoutBuilderProps) {
             maxHeight:750,
             overflow:"auto"
              }}>
-            <Stack spacing={2}>
-              {/* Segment Cards */}
-              {
-                segments.map(
-                  (segment) => (
-                    <Card onClick={() => handleCardClick(segment)} elevation={3}>
-                      <CardContent sx={{ position: "relative" }}>
-                        <Box display="flex" justifyContent="space-between" alignItems="center">
-                          <Box>
-                            {'repetitions' in segment && segment.repetitions ? (
-                              <Typography variant="subtitle1">
-                                {segment.type} (Repeat {segment.repetitions}x)
-                              </Typography>
-                            ): (
-                              <Typography variant="subtitle1">{segment.type}</Typography>
-                            )}
-                            <Typography variant="body2" color="text.secondary">
-                              {segment.notes}
-                            </Typography>
-                            {'repetitions' in segment && segment.repetitions? (
-                              <Box margin={1} padding={1} justifyContent="space-between" alignItems="center">
-                                <Stack spacing={2}>
-                              <Card>
-                                <CardContent>
-                                  <Stack direction="row" spacing={1} mt={1}>
-                                    <Chip
-                                      label={
-                                        segment.distance
-                                          ? `${segment.distance.value} ${segment.distance.unit}`
-                                          : segment.duration
-                                          ? `${segment.duration.minutes}:${(segment.duration.seconds ?? 0).toString().padStart(2, "0")}`
-                                          : "No data available"
-                                      }
-                                      size="small"
-                                      color="primary"
-                                      variant="outlined"
-                                    />
-                                    <Chip
-                                      label={
-                                        segment.pace
-                                          ? `${segment.pace.value} /${segment.pace.unit}`
-                                          : "No data available"
-                                      }
-                                      size="small"
-                                      color="success"
-                                      variant="outlined"
-                                    />
-                                  </Stack>
-                                </CardContent>
-                              </Card>
-                              <Card>
-                              <CardContent>
-                                <Stack direction="row" spacing={1} mt={1}>
-                                  <Chip
-                                    label={
-                                      'recoveryInterval' in segment && segment.recoveryInterval?.distance
-                                        ? `${segment.recoveryInterval.distance.value} ${segment.recoveryInterval.distance.unit}`
-                                        : 'recoveryInterval' in segment && segment.recoveryInterval?.duration
-                                        ? `${segment.recoveryInterval.duration.minutes}:${(segment.recoveryInterval.duration.seconds ?? 0).toString().padStart(2, "0")}`
-                                        : "No data available"
-                                    }
-                                    size="small"
-                                    color="primary"
-                                    variant="outlined"
-                                  />
-                                  <Chip
-                                    label={
-                                      segment.recoveryInterval.pace
-                                        ? `${segment.recoveryInterval.pace.value} /${segment.recoveryInterval.pace.unit}`
-                                        : "No data available"
-                                    }
-                                    size="small"
-                                    color="success"
-                                    variant="outlined"
-                                  />
-                                </Stack>
-                              </CardContent>
-                            </Card>
-                            </Stack>
-                            </Box>
-                            ): (
-                              <Stack direction="row" spacing={1} mt={1}>
-                              <Chip
-                                label={
-                                  segment.distance
-                                    ? `${segment.distance.value} ${segment.distance.unit}`
-                                    : segment.duration
-                                    ? `${segment.duration.minutes}:${(segment.duration.seconds ?? 0).toString().padStart(2, "0")}`
-                                    : "No data available"
-                                }
-                                size="small"
-                                color="primary"
-                                variant="outlined"
-                              />
-                              <Chip
-                                label={
-                                  segment.pace
-                                    ? `${segment.pace.value} /${segment.pace.unit}`
-                                    : "No data available"
-                                }
-                                size="small"
-                                color="success"
-                                variant="outlined"
-                              />
-                            </Stack>
-                            )}
-                          </Box>
-                        </Box>
-                        <IconButton aria-label="delete"
-                          sx={{
-                            position: "absolute",
-                            bottom:3,
-                            right:8
-                          }}
-                          onClick={
-                            (e) => {
-                              removeSegment(e, segment.id)
-                            }
-                          }
-                        >
-                            <DeleteIcon fontSize="small"/>
-                        </IconButton>
-                      </CardContent>
-                    </Card>
-                  ) 
-                )
-              }
-            </Stack>
+            <DndContext 
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext 
+                items={segments.map(segment => segment.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <Stack spacing={2}>
+                  {segments.map((segment) => (
+                    <SortableSegmentCard key={segment.id} segment={segment} />
+                  ))}
+                </Stack>
+              </SortableContext>
+            </DndContext>
 
             {/* Configuration Drawer */}
             <Drawer
@@ -661,15 +759,20 @@ function Workout({ workoutPaces, paceUnit }: WorkoutBuilderProps) {
               {selectedSegment && <SegmentConfig workoutSegment={selectedSegment} update={modifySegment} paceUnit={paceUnit}/>}
             </Drawer>
           </Paper>
-          <Button
-                variant="outlined"
-                startIcon={<AddIcon />}
-                onClick={() => handleAddSegment({"id": Date.now()})}
-                sx={{ mt: 2 }}
-                fullWidth
-              >
-                Add Segment
+          <Tooltip title={isPaceDefined ? "set your race pace in the calculator before creating a workout": ""} arrow>
+            <span>
+              <Button
+                  variant="outlined"
+                  startIcon={<AddIcon />}
+                  onClick={() => handleAddSegment({"id": Date.now()})}
+                  sx={{ mt: 2 }}
+                  fullWidth
+                  disabled={isPaceDefined}
+                >
+                  Add Segment
               </Button>
+            </span>
+          </Tooltip>
         </Grid2>
             </CardContent>
         </Card>

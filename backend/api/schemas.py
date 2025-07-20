@@ -1,4 +1,5 @@
 from pydantic import BaseModel, ConfigDict, Field
+from typing import Literal
 
 class WorkoutBase(BaseModel):
     """Base schema for Workout data.
@@ -11,6 +12,7 @@ class WorkoutBase(BaseModel):
         notes: additional info on the workout
     """
     name: str = Field(..., min_length=1, max_length=100, description="Workout Name")
+    type: str = Literal["Warm Up", "Training", "Intervals", "Recovery", "Cool Down"]
     pace: str | None = Field(None, description="Target Pace")
     distance: float | None = Field(None, description="Target Distance")
     time: str | None = Field(None, description="Target Time")

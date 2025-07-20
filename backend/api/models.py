@@ -16,6 +16,7 @@ class Workout(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), nullable=False)
+    type = Column(String, nullable=False)
     pace = Column(String(5), nullable=True)
     time = Column(String(8), nullable=True)
     distance = Column(Numeric(precision=4, scale=2), nullable=True)
